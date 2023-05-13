@@ -33,7 +33,7 @@ https://codecrafting.tistory.com/1 참고
 * Gradle 설치 및 GradleWrapper 클래스 생성하는 방법
 
 https://gradle.org/releases/ 에서 그레이들을 다운로드 받을 수 있다.
-GradleWrapper 클래스를 생성하려면 공조 마이크로 서비스를 사용할 폴더를 만들고 gradle init 으로 생성하면 된다.
+GradleWrapper 클래스를 생성하려면 공조 마이크로 서비스로 사용할 폴더(msa-spring-cloud2)를 만들고 gradle init 을 커맨드 한다.
 ```
 ```
 * 인텔리제이에서 골격 마이크로 서비스 생성하기
@@ -41,5 +41,50 @@ GradleWrapper 클래스를 생성하려면 공조 마이크로 서비스를 사�
 spring starter io 에서 마이크로 서비스로 사용할 프로젝트를 생성하고 File -> New -> ModuleFromExistingSource.. 를 클릭해서
 만들어둔 프로젝트를 추가하면 공조 마이크로 서비스의 골격을 추가할 수 있다.
 
-(골격 마이크로서비스를 추가하는 부분이 교재와 다른 부분이 있어서 이 내용을 작성함!)
+(골격 마이크로서비스를 추가하는 부분이 교재와 다른 부분이 있어서 이 내용을 작성함!) 106 p
 ```
+```
+* 공조 마이크로 서비스를 사용해서 골격 마이크로 서비스 빌드하기 (멀티 프로젝트 빌드 설정)
+
+공조 마이크로 서비스를 만들면 각각의 마이크로 서비스를 한번에 빌드할 수 있다.
+https://docs.gradle.org/8.1.1/userguide/multi_project_builds.html 참고 
+
+settings.gradle 설정
+
+rootProject.name = 'msa-spring-cloud2' // 공조 마이크로 서비스
+include 'microservices:product-composite-service' // 골격 마이크로 서비스들 
+include 'microservices:product-service'
+include 'microservices:recommendation-service'
+include 'microservices:review-service'
+
+./gradlew build 공조 마이크로 서비스에서 커멘드
+
+
+DevOps 관점에서 보면 멀티 프로젝트를 이용한 일괄 빌드는 바람직하지 않다. 마이크로서비스 프로젝트별 별도의 빌드 파이프라인을 설정하는
+것이 좋다. (예제 진행을 쉽게 하고자 빌드 커멘드를 하나로 모았음)
+```
+여기서 설명한 부분들은 책의 내용과 다른 점이 많기 때문에 직접 찾아보고 자료를 정리한 것. 틀린 내용이 있을 수 있다.
+
+## RESTful API 추가
+### API 정의를 배치할 별도의 그레이들 프로젝트 만들기 (API 문서화)
+```
+자바 인터페이스를 사용해 RESTful API 를 설명하고, 모델 클래스를 만들어서 API 요청 및 응답에 사용할 데이터를 정의한다.
+(MSA API 를 정의하는 모듈을 만들고 공조 마이크로서비스에 포함시켜서 관리하겠다는 의미) 115 P
+
+마이크로 서비스의 API 를 정의하고 공조 마이크로 서비스 그룹에서 관리하는 것은 좋은 선택지가 될 수 있다. 
+(마이크로 서비스와 API 문서를 같이 관리한다는 의미임) app 참고 
+```
+```
+DevOps 관점에서 보면 모든 프로젝트는 각자의 빌드 파이프라인을 가지고 각자 API 문서와 util 프로젝트에 대한 버전 제어
+의존성을 갖게 하는 것이 바람직하다. 115 p
+```
+### 전체 마이크로 서비스가 공유하는 헬퍼 클래스를 배치할 util 프로젝트 만들기 
+```
+예외 클래스와 유틸리티 클래스를 만든다. util 참고
+```
+
+
+
+
+
+
