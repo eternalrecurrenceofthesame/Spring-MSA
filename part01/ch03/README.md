@@ -152,14 +152,34 @@ curl http://localhost:7001/product/123
 앞서 만든 세 가지 핵심 서비스를 호출하는 복합 서비스를 추가해서 마이크로 서비스를 하나로 묶어보자! 
 복합 서비스 구현은 핵심 서비스로의 발신 요청을 처리하는 통합 컴포넌트와 복합 서비스 자체 구현의 두 부분으로 나뉜다.
 
-복합서비스의 구현도 앞서 구현한 핵심 마이크로서비스와 마찬가지로 api 의 공통 정보를 기반으로 만들어진다.
-api composite, product-composite-serivce 참고
+복합서비스의 구현도 앞서 구현한 핵심 마이크로서비스와 마찬가지로 api, util 의 공통 정보를 기반으로 만들어진다.
+api composite, util, product-composite-serivce 참고
 ```
 ```
 * 통합 컴포넌트 구현하기 product-composite-service 참고
 
+restTempalte 을 사용해서 핵심 서비스로의 요청을 처리한다. 
 
+getRecommendations() 메서드와 getReviews() 메서드는 제너릭 리스트 객체를 반환해야 하는데 제네릭은 런타임에
+유형 정보를 갖지 못하기 때문에 메서드의 반환 값으로 제네릭 타입을 지정할 수 없지만
+
+ParameterizedTypeReference(헬퍼 클래스) 를 사용하면 런타임시에도 제네릭 타입을 응답 값으로 사용할 수 있다. 128 p
+
+restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Recommendation>>() {}).getBody();
+exchange 메서드를 사용하면 요청 후 응답값을 받는다.
 ```
+```
+* 복합 API 구현하기 
 
+핵심 서비스에 적용한 것처럼 복합 마이크로 서비스를 호출하기 위한 RestController 를 구현한다
+ProductCompositeServiceImpl 참고 
+```
+## 복합 마이크로 서비스를 통해서 핵심 마이크로 서비스를 호출해보기
+```
+앞서 만든 복합 마이크로 서비스(product-composite-service 참고) 는 상품에 대한 정보를 요약해서 보여주는 통합 컴포넌트와 복합 서비스를 제공한다.
+(product-composite-serivce 를 통해서 요청을 처리하고, 복합 서비스로 3 개의 컴포넌트 정보를 모아서 요약된 값을 제공하는 서비스 로직을 구현했다.)
+
+쉽게 말해서 핵심 마이크로 서비스(상품, 상품 추천, 리뷰) 에서 필요한 값을 모아서 요약된 서비스를 제공한다. 
+```
 
 
