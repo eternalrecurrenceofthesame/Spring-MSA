@@ -94,14 +94,12 @@ DevOps 관점에서 보면 모든 프로젝트는 각자의 빌드 파이프라�
 하지만 앞서 설명했듯이 각각의 마이크로 서비스에서 유틸 모듈을 제어하는 것이 바람직하다. 
 ```
 ```
-* GlobalControllerExceptionHandler
+* GlobalControllerExceptionHandler 참고
 
-이 클래스는 HTTP 요청으로 발생하는 오류를 핸들링하고 응답을 하는 유틸리티 역할을 한다.
+이 클래스는 프로토콜별 예외 처리를 API 구현(REST 컨트롤러의 비즈니스 로직) 에서 분리하기 위한 유틸리티 클래스 130 p
 
 @RestControllerAdvice(@ControllerAdvice + @ResponseBody) 의 컨트롤러 어드바이스는 @ExceptionHandler, @InitBinder
 또는 @ModelAttribute 가 선언된 메서드를 @Controller 빈에서 공유할 수 있게 해준다.
-
-ex 3 GlobalControllerExceptioHandler 참고 
 ```
 ## 핵심 마이크로 서비스의 API 구현하기 
 
@@ -149,14 +147,17 @@ curl http://localhost:7001/product/123
 ```
 ## 복합 마이크로 서비스 추가하기
 ```
+* product-composite-serivce 참고
+
 앞서 만든 세 가지 핵심 서비스를 호출하는 복합 서비스를 추가해서 마이크로 서비스를 하나로 묶어보자! 
-복합 서비스 구현은 핵심 서비스로의 발신 요청을 처리하는 통합 컴포넌트와 복합 서비스 자체 구현의 두 부분으로 나뉜다.
+
+복합 서비스 구현은 핵심 서비스로의 발신 요청을 처리하는 통합 컴포넌트 ProductCompositeIntegration 와
+복합 서비스 자체 구현 두 부분으로 나뉜다. ProductCompositeServiceImpl (api 구현)  122 p
 
 복합서비스의 구현도 앞서 구현한 핵심 마이크로서비스와 마찬가지로 api, util 의 공통 정보를 기반으로 만들어진다.
-api composite, util, product-composite-serivce 참고
 ```
 ```
-* 통합 컴포넌트 구현하기 product-composite-service 참고
+* 통합 컴포넌트 구현하기 ProductCompositeIntegration 참고
 
 restTempalte 을 사용해서 핵심 서비스로의 요청을 처리한다. 
 
@@ -169,10 +170,13 @@ restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Recomm
 exchange 메서드를 사용하면 요청 후 응답값을 받는다.
 ```
 ```
-* 복합 API 구현하기 
+* 복합 API 서비스 구현하기 ProductCompositeServiceImpl
 
 핵심 서비스에 적용한 것처럼 복합 마이크로 서비스를 호출하기 위한 RestController 를 구현한다
 ProductCompositeServiceImpl 참고 
+
+비즈니스 로직 계층 ProductCompositeServiceImpl 을 마이크로 서비스 구현에 추가하면 비즈니스 로직과
+프로토콜별 코드 ProductCompositeService 가 분리돼 테스트와 재사용이 쉬워진다 130 p 
 ```
 ## 복합 마이크로 서비스를 통해서 핵심 마이크로 서비스를 호출해보기
 ```
