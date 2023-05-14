@@ -22,7 +22,7 @@ git clone https://github.com/저장소 주소 $BOOK_HOME
 https://codecrafting.tistory.com/1 참고
 
 그레이들 래퍼란? 새로운 환경에서 프로젝트를 설정할 때 JAVA 나 grdale 를 설치하지 않고 바로 빌드할 수 있게 도와주는 역할을 한다.
-그레이들 래퍼를 사용해서 골격 마이크로 서비스를 관리하는 프로젝트인 공조 마이크로 서비스?? 를 생성할 수 있다.
+그레이들 래퍼를 사용해서 골격 마이크로 서비스를 관리하는 프로젝트인 공조 마이크로 서비스?? 를 생성한다.
 
 공조란? 여러사람이 함께 돕는 것을 뜻하는 단어인듯?? (정확하지 않음)
 
@@ -33,7 +33,7 @@ https://codecrafting.tistory.com/1 참고
 * Gradle 설치 및 GradleWrapper 클래스 생성하는 방법
 
 https://gradle.org/releases/ 에서 그레이들을 다운로드 받을 수 있다.
-GradleWrapper 클래스를 생성하려면 공조 마이크로 서비스로 사용할 폴더(msa-spring-cloud2)를 만들고 gradle init 을 커맨드 한다.
+GradleWrapper 클래스를 생성해서 공조 마이크로 서비스로 사용하려면 폴더(msa-spring-cloud2)를 만들고 gradle init 을 커맨드 한다.
 ```
 ```
 * 인텔리제이에서 골격 마이크로 서비스 생성하기
@@ -71,7 +71,7 @@ DevOps 관점에서 보면 멀티 프로젝트를 이용한 일괄 빌드는 바
 자바 인터페이스를 사용해 RESTful API 를 설명하고, 모델 클래스를 만들어서 API 요청 및 응답에 사용할 데이터를 정의한다.
 (MSA API 를 정의하는 모듈을 만들고 공조 마이크로서비스에 포함시켜서 관리하겠다는 의미) 115 P
 
-마이크로 서비스의 API 를 정의하고 공조 마이크로 서비스 그룹에서 관리하는 것은 좋은 선택지가 될 수 있다. 
+마이크로 서비스 API 를 정의한 모듈을  공조 마이크로 서비스 그룹에서 관리하는 것은 좋은 선택지가 될 수 있다. 
 (마이크로 서비스와 API 문서를 같이 관리한다는 의미임) app 참고 
 ```
 ```
@@ -80,11 +80,37 @@ DevOps 관점에서 보면 모든 프로젝트는 각자의 빌드 파이프라�
 ```
 ### 전체 마이크로 서비스가 공유하는 헬퍼 클래스를 배치할 util 프로젝트 만들기 
 ```
-예외 클래스와 유틸리티 클래스를 만든다. util 참고
+골격 마이크로 서비스가 사용할 공통 유틸리티 모듈을 만들어서 공조 마이크로 서비스에 포함시켰다. util 참고
+하지만 앞서 설명했듯이 각각의 마이크로 서비스에서 유틸 모듈을 제어하는 것이 바람직하다. 
+```
+```
+* GlobalControllerExceptionHandler
+
+이 클래스는 HTTP 요청으로 발생하는 오류를 핸들링하고 응답을 하는 유틸리티 역할을 한다.
+
+@RestControllerAdvice(@ControllerAdvice + @ResponseBody) 의 컨트롤러 어드바이스는 @ExceptionHandler, @InitBinder
+또는 @ModelAttribute 가 선언된 메서드를 @Controller 빈에서 공유할 수 있게 해준다.
+
+ex 3 GlobalControllerExceptioHandler 참고 
+```
+## 핵심 마이크로 서비스의 API 구현하기 
+
+앞서 만든 API 설명서와 util 모듈을 핵심 마이크로 서비스에 구현하기!
+```
+* API, util 모듈 조립하기 
+
+각각의 핵심 마이크로 서비스 build.gradle 에 공통 모듈을 추가한다 
+
+dependencies{
+  implementation project(':api')
+  implementation project(':util;) } 
+  
+공통 모듈 추가 후 부트스트랩 클래스에서 @ComponentScan("se.magnus") 스캔 대상을 지정한다.
+```
 ```
 
 
-
+```
 
 
 
