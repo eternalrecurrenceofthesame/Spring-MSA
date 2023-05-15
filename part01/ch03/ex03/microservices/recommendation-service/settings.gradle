@@ -1,0 +1,3 @@
+rootProject.name = 'recommendation-service'
+incldue ':api'
+incldue ':util'
