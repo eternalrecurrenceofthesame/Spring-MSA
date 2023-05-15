@@ -33,8 +33,8 @@ api 모듈은 프로토콜 주소값과 dto 모델을 구현한다. 복합 마�
 
 2. util 모듈
 
-유틸리티 모듈은 공통 로직 처리를 담당한다. (ex 예외 처리) @RestControllerAdvice 를 사용해서 @ExceptionHandler 로 
-예외를 처리하는 로직을 만들었다. util 참고
+유틸리티 모듈은 공통 로직 처리를 담당한다. (ex 예외 처리, 서비스 주소값 가져오기) @RestControllerAdvice 를 사용해서 
+@ExceptionHandler 로 예외를 처리하는 로직을 만들었다. util 참고
 
 3. product-composite-service
 
