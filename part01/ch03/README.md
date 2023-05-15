@@ -197,7 +197,7 @@ ProductCompositeIntegration 컴포넌트 클래스 참고
 ```
 ## API 수동 테스트
 
-지금까지 만든 공조 마이크로 서비스를 수동으로 조회하는 테스트를 해보겠음! 
+지금까지 만든 공조 마이크로 서비스를 수동으로 조회하는 테스트를 수동으로 해보겠음! 
 
 ```
 * 정상 요청
@@ -217,12 +217,56 @@ https://blog.naver.com/justdoplzz/222642933341 jq 설치 방법 참고
 * 골격 마이크로서비스 부트스트랩 클래스 실행에 관해서
 
 공조 마이크로서비스를 설계하고 각각의 마이크로 서비스의 빌드와 공통 모듈을 공조 마이크로서비스에서 관리할 경우 각 마이크로서비스의
-부트스트랩 클래스를 사용할 수 없고 빌드된 파일은 커맨딩을 사용해서 실행해야 한다. 
+부트스트랩 클래스를 사용할 수 없다. 빌드된 파일을 커맨딩으로 실행해야 한다. 
 
 (부트스트랩으로 애플리케이션을 실행하는 방법을 찾지 못함.)
 ```
 ```
-* 예외 요청
+* 예외 요청 (포스트맨을 사용해도 된다.)
 
+curl http://localhost:7000/product-composite/13 -i 
+존재하지 않는 아이디 404 반환 검증
 
+curl http://localhost:7000/product-composite/113 -s |jq.
+추천 목록이 없는지 조회
+
+curl http://localhost:7000/product-composite/213 -s |jq.
+리뷰 목록이 없는지 조회
+
+curl http://localhost:7000/product-composite/-1 -i
+범위를 벗어난 아이디 조회
+
+curl http://localhost:7000/product-composite/badrequest -i
+badrequest 조회
 ```
+## 자동화된 마이크로 서비스 테스트
+
+웹플럭스와 함께 나온 새로운 테스트 클라이언트 WebTestClient 는 요청을 보내고 결과를 검증하는 다양한 API 를 제공한다.
+
+### 복합 마이크로 서비스 테스트 코드 작성
+```
+* ProductCompositeServiceApplicationTests 참고 
+
+테스트 전 @BeforeEach 로직을 실행해서 시나리오 데이터를 생성한다.
+(복합 마이크로서비스 테스트이기 때문에 다른 핵심 마이크로 서비스를 대신하는 데이터가 되며, 공통 API 모듈을 사용해서 만들 수 있다.)
+
+웹 플럭스가 지원하는 WebTestClient 를 사용하면 요청을 보내고 결과를 검증하는 다양한 API 를 사용할 수 있다.
+
+테스트로 반환받은 제이슨 객체에서 값을 꺼내는 방법 .jsonPath("$.productId").isEqualTo(PRODUCT_ID_OK)
+```
+```
+./gradlew build 를 커맨드하면 자동으로 테스트가 실행된다. 
+./gradlew test 를 커맨드하면 빌드하지 않고 테스트만 실행한다.
+```
+## 반자동화된 마이크로서비스 환경 테스트
+```
+자동화된 테스트는 마이크로서비스를 실행 하지 않아도 되지만 테스트 결과를 확인할 수 없다는 단점이 있다.
+마이크로서비스를 실행하고 bash 파일을 만들면 스크립트로 테스트를 관리하고 결과를 받을 수있다. 143 p 
+```
+```
+* test-em-all.bash 참고
+
+java -jar microservices/product-composite-service/build/libs/*.jar & 마이크로 서비스 부팅
+./test-em-all.bash 테스트 스크립트 실행 
+```
+
