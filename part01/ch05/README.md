@@ -10,7 +10,7 @@
 implementation('io.springfox:springfox-boot-starter:3.0.0')
 복합 마이크로 서비스와 api 모듈에 의존성을 추가한다.
 
-http://localhost:7000/swagger-ui/index.html 스웨거 ui 접속 url
+http://로컬주소/swagger-ui/index.html 스웨거 ui 접속 url
 ```
 ### 스프링 폭스 운영은 어떻게 하는 것이 좋을까? 
 ```
