@@ -192,5 +192,30 @@ ProductCompositeServiceImpl 참고
 
 복합 마이크로 서비스의 통합 컴포넌트가 호출하는 핵심마이크로 서비스 API 에서 예외가 발생하는 경우 
 상품 조회는 예외를 던지지만, 추천,리뷰 조회의 경우 간단하게 경고 로그만 남긴다.
+
+ProductCompositeIntegration 컴포넌트 클래스 참고
+```
+## API 수동 테스트
+
+지금까지 만든 공조 마이크로 서비스를 수동으로 조회하는 테스트를 해보겠음! 
+
+```
+* 정상 요청
+
+./gradlew build 전체 빌드 커멘드
+
+java -jar /microservices/product-composite-service/build/libs/파일명.jar &
+커맨딩으로 각각의 빌드된 핵심 마이크로 서비스와 복합 마이크로 서비스를 실행시킨다.
+
+curl http://localhost:7000/product-composite/1 -s |jq . 
+정상 요청을 호출한다. (커맨드라인 JSON 처리기 jq 를 사용하면 깔끔하게 호출할 수 있다. 포스트맨을 사용해도 됨)
+
+stedolan.github.io/jq/download 
+https://blog.naver.com/justdoplzz/222642933341 jq 설치 방법 참고 
 ```
 
+```
+* 예외 요청
+
+
+```
