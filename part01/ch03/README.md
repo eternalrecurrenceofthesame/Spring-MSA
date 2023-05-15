@@ -213,6 +213,12 @@ curl http://localhost:7000/product-composite/1 -s |jq .
 stedolan.github.io/jq/download 
 https://blog.naver.com/justdoplzz/222642933341 jq 설치 방법 참고 
 ```
+```
+공조 마이크로서비스를 설계하고 각각의 마이크로 서비스의 빌드와 공통 모듈을 공조 마이크로서비스에서 관리할 경우 각 
+마이크로서비스의 부트스트랩 클래스를 사용할 수 없고 빌드된 파일은 커맨딩을 사용해서 실행해야 한다. 
+
+(부트스트랩으로 애플리케이션을 실행하는 방법을 찾지 못함.)
+```
 
 ```
 * 예외 요청
