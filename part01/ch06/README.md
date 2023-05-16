@@ -25,14 +25,18 @@ compileOnly 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 - 인텔리제이 같은 IDE 에서 컴파일 타임을 생성할 때 필요한 의존성 
 
 
-2. 스프링 데이터 MongoDB 의존성 추가
+2. 스프링 데이터 MongoDB 의존성 추가 및 내장형 몽고 DB 설정
 
-implementation 'org.springframework.data:spring-data-mongodb:3.4.10'
-- 기본 몽고 DB 의존성
+implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+testImplementation 'org.springframework.boot:spring-boot-starter-test'
+testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 
-testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.4.10'
-- 테스트에서 내장형 몽고 DB 를 사용하기 위한 의존성 
+spring:
+  mongodb:
+    embedded:
+      version: 3.4.12 // 자신의 컴퓨터 환경에 맞는 버전을 선택하면 된다.
 
+버전 목록 https://spring.io/projects/spring-data-mongodb#learn
 
 3. JPA, MySQL 의존성 추가하기
 
@@ -42,6 +46,16 @@ implementation 'com.mysql:mysql-connector-j:8.0.31'
 testImplementation 'com.h2database:h2'
 - 테스트에서 내장형 H2 DB 를 사용하기 위한 의존성 
 ```
+#### + 의존성을 추가할 때 주의할 점
+```
+교재로 실습을 진행하다보면 오래된 내용일 경우 맞지 않는 경우가 굉장히 많다. 의존성을 추가하는 것 또한 오래된 내용일 경우 
+교재의 방법대로 진행이 되지 않을 수가 있다. 
+
+이런 경우 Spring starter io 에서 모듈을 조립할 때 선택하는 의존성을 가져다 쓰면 된다. 이때 선택되는 의존성은 스프링 부트 버전에
+맞는 의존성을 추가해주기 때문에 자신의 스프링 부트에 맞는 올바른 의존성을 가져다 쓸 수 있다. 
+
+ * 몽고 디비의 경우 교재의 의존성을 추가하는 방법이 되지 않아서 이 내용을 추가함  * 
+```
 ### Product 영속성 계층 구현하기 (몽고 DB)
 ```
 product-service ProductEntity 참고
@@ -50,7 +64,7 @@ product-service ProductEntity 참고
 ```
 recommendation-service RecommendationEntity 참고 
 ```
-### Review 영속성 계층 구현하기 
+### Review 영속성 계층 구현하기 (MySQL)
 ```
 review-service ReviewEntity 참고 
 ```
@@ -68,7 +82,6 @@ review-service ReviewEntity 참고
 ```
 ```
 * Product 마이크로 서비스 영속성 테스트 하기
-
 
 
 ```
