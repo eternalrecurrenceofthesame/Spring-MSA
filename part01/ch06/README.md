@@ -14,16 +14,10 @@ MapStruct 를 사용하면 스프링 데이터 엔티티 객체와 API 모델 �
 
 1. MapStruct 을 사용하기 위한 의존성 추가
 
-implementation 'org.mapstruct:mapstruct:1.5.5.Final' 
-- 기본 mapstruct
+When using a modern version of Gradle (>= 4.6), you add something along the following lines to your build.gradle:
 
-implementation 'org.mapstruct:mapstruct-processor:1.5.5.Final' 
-testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-- 컴파일 타임에 애노테이션을 처리해 빈 매핑을 구현하기위한 의존성
-
-compileOnly 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-- 인텔리제이 같은 IDE 에서 컴파일 타임을 생성할 때 필요한 의존성 
-
+ implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+ annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
 2. 스프링 데이터 MongoDB 의존성 추가 및 내장형 몽고 DB 설정
 
@@ -99,10 +93,29 @@ ProductServiceApplication 참고
 ```
 ### 새 API 추가하기
 ```
-데이터를 저장하고 삭제하는 API 를 api 공통 모듈에 추가한다. api 참고 
+데이터를 저장하고 삭제하는 API 를 api 공통 모듈에 추가한다. api - core 참고 
+```
+### 영속성 계층 사용하기 
+```
+핵심 마이크로서비스의 서비스 구현체에서 영속성 계층을 사용하는 코드를 작성한다. 
 
+serviceImpl, Mapper 클래스 참고 
+```
+#### 핵심 마이크로서비스 영속성 테스트하기
+```
+* 생성 및 삭제 API 오퍼레이션에 대한 테스트
+
+product - PersistenceTests, MapperTests 참고
 ```
 
+### 복합 서비스 API 확장하기
+```
+ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴포넌트) 참고 
+
+이번 단원에서 만든 복합 서비스 api 와 컴포넌트의 구현은 핵심 마이크로서비스에서 오류가 발생하면 데이터의 정합성이 깨질 수 있는 문제가 있다.
+모듈별 트랜잭션 전파가 되지 않기 때문에 데이터가 일부만 삭제되거나 저장될 수 있는 문제는 ch 7 에서 해결한다. 
+```
+#### 복합 서비스 테스트 업데이트 
 
 
 
