@@ -101,11 +101,21 @@ ProductServiceApplication 참고
 
 serviceImpl, Mapper 클래스 참고 
 ```
-#### 핵심 마이크로서비스 영속성 테스트하기
+#### 핵심 마이크로서비스 api(ProductServiceImpl) 테스트하기
 ```
-* 생성 및 삭제 API 오퍼레이션에 대한 테스트
+* 생성 및 삭제 API 오퍼레이션에 대한 테스트 !! 보류 
 
-product - PersistenceTests, MapperTests 참고
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
+                properties = {"spring.data.mongodb.port: 0", "spring.data.mongodb.auto-index-creation: true"})
+
+스프링부트 통합 테스트시 포트와 yml 설정 정보를 주입하는 방법. mongodb.auto-index-creation 옵션을 설정해야 @Indexted(unique = true)
+를 사용할 수 있다. https://stackoverflow.com/questions/62816322/spring-boot-mongo-db-index-unique-true-not-working 참고 
+
+
+product - ProductServiceApplicationTests, MapperTests 참고 // 리뷰와 추천 테스트도 비슷하기 때문에 일단 상품 테스트만 만든다. 
+
+!! 테스트 예제 전체적으로 오류가 있기 때문에 재설계가 필요하다. 일단 스킵 !! 
+!! duplicateErrorTest !! 테스트 설계 리팩토링 필요 
 ```
 
 ### 복합 서비스 API 확장하기
@@ -116,8 +126,10 @@ ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴�
 모듈별 트랜잭션 전파가 되지 않기 때문에 데이터가 일부만 삭제되거나 저장될 수 있는 문제는 ch 7 에서 해결한다. 
 ```
 #### 복합 서비스 테스트 업데이트 
+```
 
 
+```
 
 
 
