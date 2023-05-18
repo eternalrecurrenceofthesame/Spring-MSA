@@ -77,7 +77,7 @@ review-service ReviewEntity 참고
 ```
 * Product 마이크로 서비스 영속성 테스트 하기 
 
-product PersistenceTests 참고 // 중복 키 예외 테스트 리팩토링 필요 
+product PersistenceTests 참고
 ```
 
 ## 서비스 계층에서 영속성 계층 사용하기
@@ -103,7 +103,7 @@ serviceImpl, Mapper 클래스 참고
 ```
 #### 핵심 마이크로서비스 api(ProductServiceImpl) 테스트하기
 ```
-* 생성 및 삭제 API 오퍼레이션에 대한 테스트 !! 보류 
+* 생성 및 삭제 API 오퍼레이션에 대한 테스트
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
                 properties = {"spring.data.mongodb.port: 0", "spring.data.mongodb.auto-index-creation: true"})
@@ -113,9 +113,6 @@ serviceImpl, Mapper 클래스 참고
 
 
 product - ProductServiceApplicationTests, MapperTests 참고 // 리뷰와 추천 테스트도 비슷하기 때문에 일단 상품 테스트만 만든다. 
-
-!! 테스트 예제 전체적으로 오류가 있기 때문에 재설계가 필요하다. 일단 스킵 !! 
-!! duplicateErrorTest !! 테스트 설계 리팩토링 필요 
 ```
 
 ### 복합 서비스 API 확장하기
