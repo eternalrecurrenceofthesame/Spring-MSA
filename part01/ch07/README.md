@@ -53,6 +53,25 @@
 ```
 핵심 마이크로서비스의 리포지토리를 Reactive 스프링 데이터 타입으로 리팩토링한다. persistence (몽고 DB 를 사용하는 핵심 MSA product, recommendation)
 ```
+```
+* 스프링 부트 3.0 에서 리액티브 몽고DB 및 임베디드 몽고 사용하는 방법
+
+리액티브 몽고DB 의존성 추가
+implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+testImplementation 'io.projectreactor:reactor-test'
+
+임베디드 의존성 추가
+testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.5.2'
+
+yml 버전 설정
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+https://stackoverflow.com/questions/74734106/how-to-use-embedded-mongodb-with-springboot-v3-0-0
+```
 #### + 리액티브 리포지토리 테스트
 ```
 * ProductPersistenceTest 참고 
