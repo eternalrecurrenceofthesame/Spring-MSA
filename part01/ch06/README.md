@@ -127,13 +127,9 @@ ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴�
 ```
 #### 복합 서비스 테스트 업데이트 
 ```
-
-
+ProductCompositeServiceApplicationTests 참고 
 ```
-
-
-
-
-
-
-
+### 새 API 및 영속성 계층의 수동 테스트 진행
+```
+./gradlew build 244 p 참고 도커 실습 후 업데이트 예정. 
+```
