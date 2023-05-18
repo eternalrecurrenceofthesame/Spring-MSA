@@ -50,17 +50,9 @@ testImplementation 'com.h2database:h2'
 
  * 몽고 디비의 경우 교재의 의존성을 추가하는 방법이 되지 않아서 이 내용을 추가함  * 
 ```
-### Product 영속성 계층 구현하기 (몽고 DB)
+## 핵심마이크로서비스 영속성 계층 구현하기 
 ```
-product-service ProductEntity 참고
-```
-### Recommendation 영속성 계층 구현하기 (몽고 DB)
-```
-recommendation-service RecommendationEntity 참고 
-```
-### Review 영속성 계층 구현하기 (MySQL)
-```
-review-service ReviewEntity 참고 
+product, recommendation, review 의 엔티티 모델을 구현한다. persistence entity 참고 
 ```
 ## 스프링 데이터 리포지토리 정의하기 
 ```
@@ -77,29 +69,31 @@ review-service ReviewEntity 참고
 ```
 * Product 마이크로 서비스 영속성 테스트 하기 
 
-product PersistenceTests 참고
+ product test PersistenceTests 참고
 ```
 
 ## 서비스 계층에서 영속성 계층 사용하기
 ```
-서비스 계층 (프로토콜 구현 로직 계층 - ProductServiceImpl) 에서 영속성 계층을 사용해서 데이터를 저장하고 데이터베이스의 데이터를 검색하기
+서비스 계층 (프로토콜 구현 로직 계층 - ProductServiceImpl) 에서 영속성 계층으로 데이터를 저장하고 데이터베이스의 데이터를 검색하는
+단계별 구현 과정 (product-service 를 기준으로 설명한다.)
 ```
-### 데이터베이스 연결 URL 기록하기
+### 1. 데이터베이스 연결 URL 기록하기
 ```
-자체 데이터베이스와 연결된 마이크로서비스를 확장하는 경우 각 마이크로서비스가 실제로 사용하는 데이터베이스가 무엇인지 파악하기 힘든 문제가 있다.
-따라서 마이크로서비스가 시작된 직후 접속한 데이터베이스의 URL 을 기록하는 로그를 추가하면 어떤 데이터베이스를 사용하고 있는지 알 수 있다.
+자체 데이터베이스와 연결된 마이크로서비스를 확장하는 경우 각 마이크로서비스가 실제로 사용하는 데이터베이스가 무엇인지 파악하기 힘든
+문제가 있다. 
+
+따라서 마이크로서비스가 시작된 직후 접속한 데이터베이스의 URL 을 기록하는 로그를 추가하면 어떤 데이터베이스를 사용하고 있는지 
+알 수 있다.
 
 ProductServiceApplication 참고 
 ```
-### 새 API 추가하기
+### 2. 새 API 추가하기
 ```
 데이터를 저장하고 삭제하는 API 를 api 공통 모듈에 추가한다. api - core 참고 
 ```
-### 영속성 계층 사용하기 
+### 3. 영속성 계층 사용하기 
 ```
-핵심 마이크로서비스의 서비스 구현체에서 영속성 계층을 사용하는 코드를 작성한다. 
-
-serviceImpl, Mapper 클래스 참고 
+핵심 마이크로서비스의 서비스 구현체에서 영속성 계층을 사용하는 코드를 작성한다. serviceImpl, Mapper 클래스 참고 
 ```
 #### 핵심 마이크로서비스 api(ProductServiceImpl) 테스트하기
 ```
@@ -111,22 +105,20 @@ serviceImpl, Mapper 클래스 참고
 스프링부트 통합 테스트시 포트와 yml 설정 정보를 주입하는 방법. mongodb.auto-index-creation 옵션을 설정해야 @Indexted(unique = true)
 를 사용할 수 있다. https://stackoverflow.com/questions/62816322/spring-boot-mongo-db-index-unique-true-not-working 참고 
 
-
 product - ProductServiceApplicationTests, MapperTests 참고 // 리뷰와 추천 테스트도 비슷하기 때문에 일단 상품 테스트만 만든다. 
 ```
-
-### 복합 서비스 API 확장하기
+### 4. 복합 서비스 API 확장하기
 ```
-ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴포넌트) 참고 
-
 이번 단원에서 만든 복합 서비스 api 와 컴포넌트의 구현은 핵심 마이크로서비스에서 오류가 발생하면 데이터의 정합성이 깨질 수 있는 문제가 있다.
 모듈별 트랜잭션 전파가 되지 않기 때문에 데이터가 일부만 삭제되거나 저장될 수 있는 문제는 ch 7 에서 해결한다. 
+
+ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴포넌트) 참고 
 ```
 #### 복합 서비스 테스트 업데이트 
 ```
 ProductCompositeServiceApplicationTests 참고 
 ```
-### 새 API 및 영속성 계층의 수동 테스트 진행
+### 5. 새 API 및 영속성 계층의 수동 테스트 진행
 ```
 ./gradlew build 244 p 참고 도커 실습 후 업데이트 예정. 
 ```
