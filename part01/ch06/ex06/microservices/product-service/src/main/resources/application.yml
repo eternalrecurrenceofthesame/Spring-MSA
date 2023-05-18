@@ -1,0 +1,12 @@
+server:
+  port: 7001
+
+spring:
+  mongodb:
+    embedded:
+      version: 3.4.12
+
+logging:
+  level:
+    root: INFO
+    se.magnus.microservices: DEBUG
