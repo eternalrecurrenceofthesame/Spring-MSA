@@ -72,7 +72,7 @@ de:
 
 https://stackoverflow.com/questions/74734106/how-to-use-embedded-mongodb-with-springboot-v3-0-0
 ```
-#### + 리액티브 리포지토리 테스트
+#### + 몽고 DB 를 사용 리포지토리 테스트
 ```
 * ProductPersistenceTest 참고 
 
@@ -114,12 +114,16 @@ review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 
 논블로킹 리액티브 스트림에 영향을 주지 않으려면 스케줄러를 사용해야한다.
 
 스케줄러란? 일정 수의 스레드를 보유한 전용 스레드풀의 스레드에서 블로킹 상태의 코드를 실행하는 브로커로써 조회한 블로킹 엔티티를 
-플럭스로 매핑하는 과정에서 블로킹 상태로 방치되는 것을 별도의 스레드풀을 사용해서 병렬처리 함으로써 .subscribeOn(scheduler);
+플럭스로 매핑하는 과정에서 블로킹 상태로 방치되는 것을 별도의 스레드풀을 사용해서 처리 함으로써 .subscribeOn(scheduler);
 
-마이크로서비스에서 사용할 스레드의 고갈을 방지하여 마이크로서비스의 논블로킹 처리에 영향을 주지 않게 한다. 264 p
+마이크로서비스에서 사용할 스레드의 고갈을 방지하고 마이크로서비스의 논블로킹 처리에 영향을 주지 않게 한다. 264 p
 스케줄러를 사용하는 review - getReviews 메서드 참고 
 
 (spring.datasource.maximun-pool-size 속성으로 스레드 풀의 크기를 설정할 수 있다. (디폴트가 10 개))
+```
+#### + 스프링 데이터 JPA 를 사용하는 ReviewRepository 테스트
+```
+review-service ReviewRepositoryTests 참고 
 ```
 ## 핵심 마이크로서비스 논블로킹(리액티브) REST API 개발하기
 ```
