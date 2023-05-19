@@ -233,8 +233,15 @@ key: 데이터 식별을 위한 키(ex: 제품 ID)
 data: 실제 이벤트 데이터
 timestamp: 이벤트 발생 시간 
 ```
+```
+* 스프링 클라우드 의존성 추가
 
-
+spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
+```
+### 복합 서비스에서 이벤트 게시하기 
+```
+1. 
+```
 
 
 
