@@ -159,21 +159,12 @@ review-service PersistenceTests 참고
 스프링 클라우드 스트림은 그룹화된 소비자 인스턴스 중 하나의 인스턴스로만 토픽에 게시된 메시지를 전달한다.
 
 spring.cloud.stream:
-  defaultBinder: rabbit
+  defaultBinder: // rabbit or kafka 
   default.contentType: application/json
-  bindings:
-    products-out-0:
-      destination: products
-      producer:
-        required-groups: auditGroup
-    recommendations-out-0:
-      destination: recommendations
-      producer:
-        required-groups: auditGroup
-    reviews-out-0:
-      destination: reviews
-      producer:
-        required-groups: auditGroup
+  bindings.messageProcessor-in-0:
+    destination: products
+    group: productsGroup
+    
 ```
 ```
 * 재시도 및 데드 레터 대기열 
@@ -218,14 +209,6 @@ spring.cloud.stream.bindings.products-out-0.producer:
   partition-key-expression: headers['partitionKey']
   partition-count: 2
 
-spring.cloud.stream.bindings.recommendations-out-0.producer:
-  partition-key-expression: headers['partitionKey']
-  partition-count: 2
-
-spring.cloud.stream.bindings.reviews-out-0.producer:
-  partition-key-expression: headers['partitionKey']
-  partition-count: 2
-
 // 핵심 마이크로서비스 설정(소비자 파티션 지정)
 
 spring.config.activate.on-profile: streaming_partitioned
@@ -236,6 +219,21 @@ spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
 
 쉽게말해서 복합 마이크로서비스에서 메시지를 보낼때 아이디값을 같이 보내면 같은 아이디가 같은 파티션에 들어가게 되고
 순차적으로 메시지 로직을 수행할 수 있다는 의미다. 275 그림 참고
+```
+```
++ 복합 마이크로서비스에서 래빗 상세 설정하기 
+
+spring.cloud.stream:
+  defaultBinder: rabbit
+  default.contentType: application/json
+  bindings:
+    products-out-0:
+      destination: products
+      producer:
+        required-groups: auditGroup 
+
+래빗을 사용하면 성공적으로 처리된 이벤트는 제거된다. 래빗에서 각 토픽에 게시된 이벤트를 확인할 수 있도록 별도의
+소비자 그룹인 auditGroup 에 저장하도록 구성하면 추후 검사를 위해 이벤트를 저장하는 별도의 대기열이 생성된다.
 ```
 ### 토픽 및 이벤트 정의하기
 ```
