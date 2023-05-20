@@ -159,9 +159,21 @@ review-service PersistenceTests 참고
 스프링 클라우드 스트림은 그룹화된 소비자 인스턴스 중 하나의 인스턴스로만 토픽에 게시된 메시지를 전달한다.
 
 spring.cloud.stream:
-  bindings.input:
-    destination: products
-    group: productsGroup    // product-service yml 참고 
+  defaultBinder: rabbit
+  default.contentType: application/json
+  bindings:
+    products-out-0:
+      destination: products
+      producer:
+        required-groups: auditGroup
+    recommendations-out-0:
+      destination: recommendations
+      producer:
+        required-groups: auditGroup
+    reviews-out-0:
+      destination: reviews
+      producer:
+        required-groups: auditGroup
 ```
 ```
 * 재시도 및 데드 레터 대기열 
@@ -174,17 +186,17 @@ spring.cloud.stream:
 
 재시도에 따른 과부하를 피하려면 재시도 횟수를 지정하고 재시도 간격을 넓히는 것이 바람직하다.
 
-spring.cloud.stream.bindings.input.consumer:
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
   maxAttempts: 3  // 재시도 3 번
   backOffInitialInterval: 500  // 첫 번째 실패 후 재시도 간격 500 ms
   backOffMaxInterval: 1000  // 두 번째 세 번째 재시도 간격 1000 ms
   backOffMultiplier: 2.0
   
-spring.cloud.stream.rabbit.bindings.input.consumer: // 래빗
+spring.cloud.stream.rabbit.bindings.messageProcessor-in-0.consumer: // 래빗
   autoBindDlq: true
   republishToDlq: true
   
-spring.cloud.stream.kafka.bindgs.input.consumer:  // 카프카 
+spring.cloud.stream.kafka.bindgs.messageProcessor-in-0.consumer:  // 카프카 
   enableDlq: true
 ```
 ```
@@ -199,20 +211,28 @@ spring.cloud.stream.kafka.bindgs.input.consumer:  // 카프카
 수 있다. 같은 키를 가진 메시지는 언제나 같은 파티션에 배치되고 동일 파티션에 속한 메시지는 순서가 보장된다.
 
 // 복합 마이크로 서비스설정
-spring.cloud.stream.bindings.output:
-  destination: products
-  producer:
-    partition-key-expression: payload.key // 페이로드의 키 필드에서 키를 사용할 수 있다.
-    partition-count: 2 // 파티션을 두 개 사용한다
-    
+
+spring.config.activate.on-profile: streaming_partitioned
+
+spring.cloud.stream.bindings.products-out-0.producer:
+  partition-key-expression: headers['partitionKey']
+  partition-count: 2
+
+spring.cloud.stream.bindings.recommendations-out-0.producer:
+  partition-key-expression: headers['partitionKey']
+  partition-count: 2
+
+spring.cloud.stream.bindings.reviews-out-0.producer:
+  partition-key-expression: headers['partitionKey']
+  partition-count: 2
+
 // 핵심 마이크로서비스 설정(소비자 파티션 지정)
-spring.cloud.stream.bindings.input:
-  destinatnion: products
-  group: productsGroup
-  consumer:
-    partitioned: true
-    instance-index: 0 // 인스턴스가 첫 번째 파티션만 소비한다는 것을 스프링 클라우드에 알린다.
-    
+
+spring.config.activate.on-profile: streaming_partitioned
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
+  partitioned: true
+  instanceCount: 2    
 
 쉽게말해서 복합 마이크로서비스에서 메시지를 보낼때 아이디값을 같이 보내면 같은 아이디가 같은 파티션에 들어가게 되고
 순차적으로 메시지 로직을 수행할 수 있다는 의미다. 275 그림 참고
@@ -237,12 +257,12 @@ timestamp: 이벤트 발생 시간
 
 spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
 ```
-### 복합 서비스에서 이벤트 게시하기 
+### 복합 서비스에서 이벤트 생성하고 게시하기 
 ```
 1. StreamBridge 만들기
 
 StreamBridge - A class which allows user to send data to an output(출력) binding  
-Json 객체를 메시지로 생산하거나 소비하는 역할을 한다.  
+Json 바디를 메시지로 생산하는 역할을 한다. 생산자(Output Binding)
 
 https://kouzie.github.io/spring-cloud/Spring-Cloud-spring-cloud-stream/#spring-cloud-stream 참고
 
@@ -256,7 +276,17 @@ StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에
 implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
 ```
+```
+2. 스케줄러 정의하기
 
+스케줄러란 앞서도 설명했지만 블로킹 상태의 객체를 스레드 풀에서 작업하는 역할을 한다. 이렇게 함으로써 다른 마이크로서비스에서
+사용할 스레드의 고갈을 방지할 수 있다. 
+
+스케줄러는 StreamBridge 가 이벤트 메시지를 생성하는 것을 실행하는 역할을 한다. 스케줄러는 부트스트랩 클래스에 정의하고 빈으로 
+주입받아서 통합 컴포넌트 클래스에서 사용한다. 
+
+ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 createProduct 메서드를 참고한다.
+```
 
 
 
