@@ -140,13 +140,12 @@ review-service PersistenceTests 참고
 
 ### 복합 마이크로서비스의 논블로킹 동기 REST API 개발하기 
 ```
-
 ```
 ## 이벤트 기반 비동기 서비스 개발하기
 
-스프링 클라우드 스트림을 이용해서 비동기 메시지를 처리한다. 이 프로그래밍 모델은 사용하는 메시징 시스템(카프카, 래빗) 과 독립적으로 
+스프링 부트 3.0 기반의 스프링 클라우드 스트림을 이용해서 비동기 메시지를 처리한다. 이 프로그래밍 모델은 사용하는 
 
-사용할 수 있다. 
+메시징 시스템(카프카, 래빗) 과 독립적으로 사용할 수 있다. **교재에는 없는 최신 버전!!** 
 ```
 핵심 마이크로서비스의 생성, 삭제 서비스를 이벤트 기반으로 개발한다. 복합 마이크로서비스는 생성 및 삭제 이벤트를 각 핵심 서비스의 토픽에
 게시한 후 핵심 마이크로서비스의 처리를 기다리지 않고 호출자에게 OK 응답을 반환한다.  270 그림 참고 
@@ -240,7 +239,22 @@ spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에
 ```
 ### 복합 서비스에서 이벤트 게시하기 
 ```
-1. 
+1. StreamBridge 만들기
+
+StreamBridge - A class which allows user to send data to an output(출력) binding  
+Json 객체를 메시지로 생산하거나 소비하는 역할을 한다.  
+
+https://kouzie.github.io/spring-cloud/Spring-Cloud-spring-cloud-stream/#spring-cloud-stream 참고
+
+StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에서 주입 받아서 사용했다. 
+```
+```
++ OpenApi 를 사용한 문서화 
+
+앞선 단원에서 스웨거를 사용해서 api 문서를 만들었다면 이번에는 OpenApi 를 사용해서 조금 더 쉽게 API 문서를 만들어본다!
+
+implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
+복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
 ```
 
 
