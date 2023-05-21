@@ -326,6 +326,24 @@ spring.cloud.stream:
 래빗을 사용하면 성공적으로 처리된 이벤트는 제거된다. 래빗에서 각 토픽에 게시된 이벤트를 확인할 수 있도록 별도의
 소비자 그룹인 auditGroup 에 저장하도록 구성하면 추후 검사를 위해 이벤트를 저장하는 별도의 대기열이 생성된다.
 ```
+### 복합 마이크로서비스 메시징 테스트하기
+```
+* 
+```
+#### + LocalDateTime 직렬화에 실패하는 경우 해결방법
+```
+모듈 추가
+implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+implementation 'com.fasterxml.jackson.core:jackson-databind' 
+
+LocalDate 를 사용하는 필드에 애노테이션 추가
+@JsonSerialize(using = LocalDateTimeSerializer.class)
+@JsonDeserialize(using = LocalDateTimeDeserializer.class)
+
+https://velog.io/@sago_mungcci/%EC%8A%A4%ED%94%84%EB%A7%81-Java-8-LocalDateTime-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EC%98%A4%EB%A5%98 참고
+
+```
+
 ## 핵심 마이크로서비스 (메시지 소비자) yml 구성 설정하기  
 
 복합 마이크로서비스 및 핵심 마이크로서비스의 yml 구성 파일을 참고한다. 
