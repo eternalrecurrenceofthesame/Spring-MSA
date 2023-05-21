@@ -47,14 +47,18 @@
 복합 마이크로서비스는 동기 API 로 개발한다
 핵심 마이크로서비스는 읽기 API 는 동기 API 로 개발하고, 생성 및 삭제 API 는 이벤트 기반의 비동기 서비스로 개발한다.
 ```
-## 논블로킹(리액티브) 동기 API 개발하기 
+## 논블로킹 동기 API 개발하기 
 ```
 * composite-microservice ,product,review,recommendation - serviceImpl 참고 
 
-복합 마이크로서비스 & 핵심 마이크로서비스의 읽기 메서드
+복합 마이크로서비스 & 핵심 마이크로서비스의 읽기 메서드를 구현한다. 
 
 참고로 리액티브 스트림 타입을 자료형으로 받는 메서드의 경우 구독을 하지 않아도 프레임워크가 자동으로 호출해준다. 
 https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part3/ch11
+```
+## 복합 마이크로서비스의 논블로킹 동기 REST API 개발하기 
+```
+* product-service. serviceImpl 생성 및 삭제 구현 참고 
 ```
 ### 스프링 데이터 MongoDB 를 사용해서 영속성 구현 260 p
 ```
@@ -127,6 +131,10 @@ StepVerifier.create(repository.save(entity)).expectError(DuplicateKeyException.c
 스프링부트 통합 테스트 애노테이션 처럼 (@SpringBootTest) MongoTest 를 사용할 때도 설정 정보를 주입해줄 수 있다.
 필드값에 인덱스 true 를 검증하고 싶다면 위 애노테이션 설정 정보를 추가한다.
 ```
+#### + product-service 테스트하기
+```
+* product-service  
+```
 ### 스프링 데이터 JPA 를 사용해서 영속성 구현하기
 ```
 review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 구현 및 테스트 방식이 다르다. review-service 참고
@@ -152,11 +160,6 @@ review 부트스트랩 클래스 참고
 ```
 review-service PersistenceTests 참고 
 ```
-
-### 복합 마이크로서비스의 논블로킹 동기 REST API 개발하기 
-```
-* product-service. serviceImpl 생성 및 삭제 참고 
-```
 ## 이벤트 기반 비동기 서비스 개발하기
 
 스프링 부트 3.0 기반의 스프링 클라우드 스트림을 이용해서 비동기 메시지를 처리한다. 이 프로그래밍 모델은 사용하는 
@@ -165,7 +168,7 @@ review-service PersistenceTests 참고
 ```
 * composite-microservice ,product 참고 
 
-핵심 마이크로서비스의 생성, 삭제 서비스는 이벤트 기반의 비동기 서비스로 개발한다. 복합 마이크로서비스가 생성 및 삭제
+핵심 마이크로서비스의 생성, 삭제 서비스는 이벤트 기반의 비동기 서비스로 개발. 복합 마이크로서비스가 생성 및 삭제
 이벤트를 각 핵심 서비스의 토픽에 게시하고 핵심 마이크로서비스의 처리를 기다리지 않고 호출자에게 OK 응답을 반환한다.  
 
 270 그림 참고 
@@ -239,6 +242,8 @@ spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
 
 쉽게말해서 복합 마이크로서비스에서 메시지를 보낼때 아이디값을 같이 보내면 같은 아이디가 같은 파티션에 들어가게 되고
 순차적으로 메시지 로직을 수행할 수 있다는 의미다. 275 그림 참고
+
+ProductCompositeIntegration 헤더값 설정 참고 
 ```
 ```
 + 복합 마이크로서비스에서 래빗 상세 설정하기 
@@ -315,5 +320,35 @@ ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 creat
 ```
 앞서 설명했듯 복합 마이크로서비스 클라이언트는 다른 조직의 서비스에 연결해야 하므로 동기 API 로 개발한다. 
 ```
-여기까지 해서 각각의 핵심마이크로 서비스와 복합 마이크로서비스의 기본 토대를 구현했다. 
 
+여기까지 해서 각각의 핵심마이크로 서비스와 복합 마이크로서비스의 기본 토대를 구현했다. 지금부터는 각각의 핵심 마이크로서비스가
+
+사용하는 메시지 프로세서를 자바빈 설정으로 구현한다.
+
+## 마이크로서비스 (메시지 소비자) yml 구성 설정하기  
+
+복합 마이크로서비스 및 핵심 마이크로서비스의 yml 구성 파일을 참고한다. 
+
+```
+* spring cloud function 사용하기 
+
+spring cloud function 은 빈으로 등록된 Consumer, Supplier, Function 타입을 구성한 메서드를 사용해서 이벤트를 
+처리하기 전 핸들링 용도로 사용할 수 있다. (추가 설명 필요) 
+
+yml 설정
+spring.cloud.function.definition: messageProcessor  
+
+자바 설정
+MessageProcessorConfig 참고. 간단하게 이벤트가 만들어진 위치를 로그로 찍는 메서드를 추가했다. 
+
+참고 
+https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#spring_cloud_function 
+```
+```
+* 바인더, 데스티네이션, 그룹
+
+바인더로 래빗을 호출할 수 있다. 바인더는 외부 메시지 시스템과 통합을 담당한다.
+
+클라우드 스트림의 추가 정보는 아래 블로그를 참고 
+https://coding-start.tistory.com/139 
+```
