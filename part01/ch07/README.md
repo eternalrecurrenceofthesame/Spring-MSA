@@ -173,6 +173,72 @@ review-service PersistenceTests 참고
 
 270 그림 참고 
 ```
+### 토픽 및 이벤트 정의하기
+```
+복합 마이크로서비스는 토픽에 메시지를 게시하고 핵심 마이크로서비스는 관심있는 토픽을 구독해서 메시지를 수신한다.
+
+메시징 시스템은 보통 헤더와 본문으로 구성된 메시지를 다루는데 어떤 상황이 발생했다는 것을 설명하는 메시지가 이벤트이다.
+이벤트 메시지 본문에는 이벤트 유형, 이벤트 데이터, 타임 스탬프가 들어 있다.
+```
+```
+* api 통합 모듈에 이벤트 정의하기 api event참고
+
+type: 이벤트 유형(ex: 생성, 삭제)
+key: 데이터 식별을 위한 키(ex: 제품 ID)
+data: 실제 이벤트 데이터
+timestamp: 이벤트 발생 시간 
+```
+```
+* 스프링 클라우드 의존성 추가
+
+spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
+```
+### 복합 서비스 컴포넌트에서 이벤트 생성하고 게시하기 
+```
+* productcompositeservice - ProductCompositeIntegration 참고 
+```
+```
+1. StreamBridge 만들기
+
+StreamBridge - A class which allows user to send data to an output(출력) binding  
+Json 바디를 메시지로 생산하는 역할을 한다. 생산자(Output Binding)
+
+https://kouzie.github.io/spring-cloud/Spring-Cloud-spring-cloud-stream/#spring-cloud-stream 참고
+
+StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에서 주입 받아서 사용했다. 
+```
+```
++ OpenApi 를 사용한 문서화 
+
+앞선 단원에서 스웨거를 사용해서 api 문서를 만들었다면 이번에는 OpenApi 를 사용해서 조금 더 쉽게 API 문서를 만들어본다!
+
+implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
+api, 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
+```
+```
+2. 스케줄러 정의하기
+
+스케줄러란 앞서도 설명했지만 블로킹 상태의 객체를 스레드 풀에서 작업하는 역할을 한다. 이렇게 함으로써 다른 마이크로서비스에서
+사용할 스레드의 고갈을 방지할 수 있다. 
+
+스케줄러는 StreamBridge 가 이벤트 메시지를 생성하는 것을 실행하는 역할을 한다. 스케줄러는 부트스트랩 클래스에 정의하고 빈으로 
+주입받아서 통합 컴포넌트 클래스에서 사용한다. 
+
+ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 createProduct 메서드를 참고한다.
+```
+### 복합 서비스 API 구현하기
+```
+* productcompositeservice - ProductCompositeServiceImpl 참고
+```
+```
+앞서 설명했듯 복합 마이크로서비스 클라이언트는 다른 조직의 서비스에 연결해야 하므로 동기 API 로 개발한다. 
+```
+
+여기까지 해서 각각의 핵심마이크로 서비스와 복합 마이크로서비스의 기본 토대를 구현했다. 지금부터는 각각의 핵심 마이크로서비스가
+
+사용하는 메시지 프로세서를 자바빈 설정으로 구현한다.
+
+## 복합 마이크로서비스 yml 설정하기
 ```
 * 소비자 그룹 만들기
 
@@ -260,72 +326,7 @@ spring.cloud.stream:
 래빗을 사용하면 성공적으로 처리된 이벤트는 제거된다. 래빗에서 각 토픽에 게시된 이벤트를 확인할 수 있도록 별도의
 소비자 그룹인 auditGroup 에 저장하도록 구성하면 추후 검사를 위해 이벤트를 저장하는 별도의 대기열이 생성된다.
 ```
-### 토픽 및 이벤트 정의하기
-```
-복합 마이크로서비스는 토픽에 메시지를 게시하고 핵심 마이크로서비스는 관심있는 토픽을 구독해서 메시지를 수신한다.
-
-메시징 시스템은 보통 헤더와 본문으로 구성된 메시지를 다루는데 어떤 상황이 발생했다는 것을 설명하는 메시지가 이벤트이다.
-이벤트 메시지 본문에는 이벤트 유형, 이벤트 데이터, 타임 스탬프가 들어 있다.
-```
-```
-* api 통합 모듈에 이벤트 정의하기 api event참고
-
-type: 이벤트 유형(ex: 생성, 삭제)
-key: 데이터 식별을 위한 키(ex: 제품 ID)
-data: 실제 이벤트 데이터
-timestamp: 이벤트 발생 시간 
-```
-```
-* 스프링 클라우드 의존성 추가
-
-spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
-```
-### 복합 서비스 컴포넌트에서 이벤트 생성하고 게시하기 
-```
-* productcompositeservice - ProductCompositeIntegration 참고 
-```
-```
-1. StreamBridge 만들기
-
-StreamBridge - A class which allows user to send data to an output(출력) binding  
-Json 바디를 메시지로 생산하는 역할을 한다. 생산자(Output Binding)
-
-https://kouzie.github.io/spring-cloud/Spring-Cloud-spring-cloud-stream/#spring-cloud-stream 참고
-
-StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에서 주입 받아서 사용했다. 
-```
-```
-+ OpenApi 를 사용한 문서화 
-
-앞선 단원에서 스웨거를 사용해서 api 문서를 만들었다면 이번에는 OpenApi 를 사용해서 조금 더 쉽게 API 문서를 만들어본다!
-
-implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
-api, 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
-```
-```
-2. 스케줄러 정의하기
-
-스케줄러란 앞서도 설명했지만 블로킹 상태의 객체를 스레드 풀에서 작업하는 역할을 한다. 이렇게 함으로써 다른 마이크로서비스에서
-사용할 스레드의 고갈을 방지할 수 있다. 
-
-스케줄러는 StreamBridge 가 이벤트 메시지를 생성하는 것을 실행하는 역할을 한다. 스케줄러는 부트스트랩 클래스에 정의하고 빈으로 
-주입받아서 통합 컴포넌트 클래스에서 사용한다. 
-
-ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 createProduct 메서드를 참고한다.
-```
-### 복합 서비스 API 구현하기
-```
-* productcompositeservice - ProductCompositeServiceImpl 참고
-```
-```
-앞서 설명했듯 복합 마이크로서비스 클라이언트는 다른 조직의 서비스에 연결해야 하므로 동기 API 로 개발한다. 
-```
-
-여기까지 해서 각각의 핵심마이크로 서비스와 복합 마이크로서비스의 기본 토대를 구현했다. 지금부터는 각각의 핵심 마이크로서비스가
-
-사용하는 메시지 프로세서를 자바빈 설정으로 구현한다.
-
-## 마이크로서비스 (메시지 소비자) yml 구성 설정하기  
+## 핵심 마이크로서비스 (메시지 소비자) yml 구성 설정하기  
 
 복합 마이크로서비스 및 핵심 마이크로서비스의 yml 구성 파일을 참고한다. 
 
