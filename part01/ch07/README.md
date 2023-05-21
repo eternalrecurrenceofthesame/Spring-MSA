@@ -56,9 +56,26 @@
 참고로 리액티브 스트림 타입을 자료형으로 받는 메서드의 경우 구독을 하지 않아도 프레임워크가 자동으로 호출해준다. 
 https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part3/ch11
 ```
-### 스프링 데이터 MongoDB 를 사용한 논블로킹(리액티브) 영속성 구현 260 p
+### 스프링 데이터 MongoDB 를 사용해서 영속성 구현 260 p
 ```
 핵심 마이크로서비스의 리포지토리를 Reactive 스프링 데이터 타입으로 리팩토링한다. persistence (몽고 DB 를 사용하는 핵심 MSA product, recommendation)
+```
+```
+* 스프링 부트 3.0 에서 도커 이미지를 테스트 컨테이너로 사용하는 몽고 DB 테스트하기 (새로운 방법)
+
+의존관계 추가
+implementation platform('org.testcontainers:testcontainers-bom:1.17.6')
+testImplementation 'org.testcontainers:testcontainers'
+testImplementation 'org.testcontainers:junit-jupiter'
+testImplementation 'org.testcontainers:mongodb'
+
+yml 설정
+spring.data.mongodb:
+  host: localhost
+  port: 27017
+  database: product-db
+  
+도커 추가후 리팩토링 예정 
 ```
 ```
 * 스프링 부트 3.0 에서 리액티브 몽고DB 및 임베디드 몽고 사용하는 방법
@@ -110,7 +127,7 @@ StepVerifier.create(repository.save(entity)).expectError(DuplicateKeyException.c
 스프링부트 통합 테스트 애노테이션 처럼 (@SpringBootTest) MongoTest 를 사용할 때도 설정 정보를 주입해줄 수 있다.
 필드값에 인덱스 true 를 검증하고 싶다면 위 애노테이션 설정 정보를 추가한다.
 ```
-### 스프링 데이터 JPA 를 사용한 논블로킹(리액티브) 영속성 구현하기
+### 스프링 데이터 JPA 를 사용해서 영속성 구현하기
 ```
 review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 구현 및 테스트 방식이 다르다. review-service 참고
 ```
@@ -125,8 +142,6 @@ review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 
 
 마이크로서비스에서 사용할 스레드의 고갈을 방지하고 마이크로서비스의 논블로킹 처리에 영향을 주지 않게 한다. 264 p
 스케줄러를 사용하는 review - getReviews 메서드 참고 
-
-(spring.datasource.maximun-pool-size 속성으로 스레드 풀의 크기를 설정할 수 있다. (디폴트가 10 개))
 ```
 ```
 * 자바 설정으로 스레드 풀 구성하기
@@ -140,6 +155,7 @@ review-service PersistenceTests 참고
 
 ### 복합 마이크로서비스의 논블로킹 동기 REST API 개발하기 
 ```
+* product-service. serviceImpl 생성 및 삭제 참고 
 ```
 ## 이벤트 기반 비동기 서비스 개발하기
 
@@ -147,8 +163,12 @@ review-service PersistenceTests 참고
 
 메시징 시스템(카프카, 래빗) 과 독립적으로 사용할 수 있다. **교재에는 없는 최신 버전!!** 
 ```
-핵심 마이크로서비스의 생성, 삭제 서비스를 이벤트 기반으로 개발한다. 복합 마이크로서비스는 생성 및 삭제 이벤트를 각 핵심 서비스의 토픽에
-게시한 후 핵심 마이크로서비스의 처리를 기다리지 않고 호출자에게 OK 응답을 반환한다.  270 그림 참고 
+* composite-microservice ,product 참고 
+
+핵심 마이크로서비스의 생성, 삭제 서비스는 이벤트 기반의 비동기 서비스로 개발한다. 복합 마이크로서비스가 생성 및 삭제
+이벤트를 각 핵심 서비스의 토픽에 게시하고 핵심 마이크로서비스의 처리를 기다리지 않고 호출자에게 OK 응답을 반환한다.  
+
+270 그림 참고 
 ```
 ```
 * 소비자 그룹 만들기
@@ -255,7 +275,10 @@ timestamp: 이벤트 발생 시간
 
 spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
 ```
-### 복합 서비스에서 이벤트 생성하고 게시하기 
+### 복합 서비스 컴포넌트에서 이벤트 생성하고 게시하기 
+```
+* productcompositeservice - ProductCompositeIntegration 참고 
+```
 ```
 1. StreamBridge 만들기
 
@@ -272,7 +295,7 @@ StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에
 앞선 단원에서 스웨거를 사용해서 api 문서를 만들었다면 이번에는 OpenApi 를 사용해서 조금 더 쉽게 API 문서를 만들어본다!
 
 implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
-복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
+api, 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
 ```
 ```
 2. 스케줄러 정의하기
@@ -285,7 +308,12 @@ implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
 
 ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 createProduct 메서드를 참고한다.
 ```
-
-
-
+### 복합 서비스 API 구현하기
+```
+* productcompositeservice - ProductCompositeServiceImpl 참고
+```
+```
+앞서 설명했듯 복합 마이크로서비스 클라이언트는 다른 조직의 서비스에 연결해야 하므로 동기 API 로 개발한다. 
+```
+여기까지 해서 각각의 핵심마이크로 서비스와 복합 마이크로서비스의 기본 토대를 구현했다. 
 
