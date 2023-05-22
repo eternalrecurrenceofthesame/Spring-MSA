@@ -28,7 +28,7 @@
 ```
 * 리액티브 동기 API 방식을 사용하는 것이 유리한 경우 254 p 
 
-- 최종 사용자가 응답을 기다리는 작업일 때
+- 최종 사용자가 응답을 기다리는 작업일 때 (조회 작업)
 - 모바일 앱이나 SPA 웹 애플리케이션처럼 동기 API 가 알맞은 클라이언트 플랫폼일때
 - 클라이언트가 다른 조직의 서비스에 연결할 때(여러 조직이 공통 메시징 시스템을 공유해서 사용할 수 없는 경우) 
 ```
@@ -47,22 +47,22 @@
 복합 마이크로서비스는 동기 API 로 개발한다
 핵심 마이크로서비스는 읽기 API 는 동기 API 로 개발하고, 생성 및 삭제 API 는 이벤트 기반의 비동기 서비스로 개발한다.
 ```
-## 논블로킹 동기 API 개발하기 
+## 복합 마이크로서비스 논블로킹 동기 API 개발하기 
 ```
-* composite-microservice ,product,review,recommendation - serviceImpl 참고 
+* 복합 마이크로서비스의 serviceImpl 참고 
 
 복합 마이크로서비스 & 핵심 마이크로서비스의 읽기 메서드를 구현한다. 
 
 참고로 리액티브 스트림 타입을 자료형으로 받는 메서드의 경우 구독을 하지 않아도 프레임워크가 자동으로 호출해준다. 
 https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part3/ch11
 ```
-## 복합 마이크로서비스의 논블로킹 동기 REST API 개발하기 
+## 핵심 마이크로서비스 이벤트 기반의 비동기 API 서비스 개발하기 
 ```
-* product-service. serviceImpl 생성 및 삭제 구현 참고 
+* 핵심 마이크로서비스의 생성 및 삭제 ServiceImpl 참고 
 ```
 ### 스프링 데이터 MongoDB 를 사용해서 영속성 구현 260 p
 ```
-핵심 마이크로서비스의 리포지토리를 Reactive 스프링 데이터 타입으로 리팩토링한다. persistence (몽고 DB 를 사용하는 핵심 MSA product, recommendation)
+핵심 마이크로서비스의 리포지토리를 Reactive 스프링 데이터 타입으로 리팩토링한다. proudct,recommendation persistence 참고
 ```
 ```
 * 스프링 부트 3.0 에서 도커 이미지를 테스트 컨테이너로 사용하는 몽고 DB 테스트하기 (새로운 방법)
@@ -100,7 +100,7 @@ de:
 
 https://stackoverflow.com/questions/74734106/how-to-use-embedded-mongodb-with-springboot-v3-0-0
 ```
-#### + 몽고 DB 를 사용한 리포지토리 테스트
+#### + 몽고 DB 를 사용해서 상품 리포지토리 테스트하기
 ```
 * ProductPersistenceTest 참고 
 
@@ -129,11 +129,11 @@ StepVerifier.create(repository.save(entity)).expectError(DuplicateKeyException.c
 @DataMongoTest(properties = {"spring.data.mongodb.auto-index-creation: true"}
 
 스프링부트 통합 테스트 애노테이션 처럼 (@SpringBootTest) MongoTest 를 사용할 때도 설정 정보를 주입해줄 수 있다.
-필드값에 인덱스 true 를 검증하고 싶다면 위 애노테이션 설정 정보를 추가한다.
+필드값의 인덱스 true 를 검증하고 싶다면 위 애노테이션 설정 정보를 추가한다.
 ```
-#### + product-service 테스트하기
+#### + 상품 서비스 테스트하기
 ```
-* product-service  
+* ProductServiceApplicationTests 참고   
 ```
 ### 스프링 데이터 JPA 를 사용해서 영속성 구현하기
 ```
@@ -193,7 +193,7 @@ timestamp: 이벤트 발생 시간
 
 spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
 ```
-### 복합 서비스 컴포넌트에서 이벤트 생성하고 게시하기 
+### 복합 서비스 컴포넌트에서 이벤트를 생성하고 토픽에 게시하기 
 ```
 * productcompositeservice - ProductCompositeIntegration 참고 
 ```
@@ -343,7 +343,6 @@ LocalDate 를 사용하는 필드에 애노테이션 추가
 https://velog.io/@sago_mungcci/%EC%8A%A4%ED%94%84%EB%A7%81-Java-8-LocalDateTime-%EC%A7%81%EB%A0%AC%ED%99%94-%EC%97%AD%EC%A7%81%EB%A0%AC%ED%99%94-%EC%98%A4%EB%A5%98 참고
 
 ```
-
 ## 핵심 마이크로서비스 (메시지 소비자) yml 구성 설정하기  
 
 복합 마이크로서비스 및 핵심 마이크로서비스의 yml 구성 파일을 참고한다. 
@@ -351,8 +350,8 @@ https://velog.io/@sago_mungcci/%EC%8A%A4%ED%94%84%EB%A7%81-Java-8-LocalDateTime-
 ```
 * spring cloud function 사용하기 
 
-spring cloud function 은 빈으로 등록된 Consumer, Supplier, Function 타입을 구성한 메서드를 사용해서 이벤트를 
-처리하기 전 핸들링 용도로 사용할 수 있다. (추가 설명 필요) 
+spring cloud function 은 빈으로 등록된 Consumer, Supplier, Function 타입을 구성한 메서드를 사용해서 이벤트 수신을 
+위한 메시지 프로세서를 처리하기 전 핸들링 용도로 사용할 수 있다.
 
 yml 설정
 spring.cloud.function.definition: messageProcessor  
@@ -366,8 +365,26 @@ https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cl
 ```
 * 바인더, 데스티네이션, 그룹
 
-바인더로 래빗을 호출할 수 있다. 바인더는 외부 메시지 시스템과 통합을 담당한다.
+바인더: 외부 메시징 시스템과 통합을 담당한다.
+데스티네이션: 채널과 토픽을 연결시키는 역할을 한다
+그룹: 메시지 소비자 인스턴스를 그룹으로 묶어서 관리할 수 있다. 
 
 클라우드 스트림의 추가 정보는 아래 블로그를 참고 
 https://coding-start.tistory.com/139 
 ```
+### 토픽의 이벤트를 수신하기 위한 메시지 프로세서 자바 설정 구현하기
+```
+앞서 설명했듯 핵심 마이크로서비스의 생성 및 삭제는 메시징 시스템을 이용한 비동기 서비스로  구현한다. 토픽의 이벤트를
+수신하기 위한 메시지 프로세스를 구현하고 빈으로 등록하면 손쉽게 메시지를 소비할 수 있다.
+
+product MessageProcessorConfig 참고
+```
+
+
+
+
+
+
+
+
+
