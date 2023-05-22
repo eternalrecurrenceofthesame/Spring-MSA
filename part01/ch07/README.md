@@ -126,7 +126,7 @@ StepVerifier.create(repository.save(entity)).expectError(DuplicateKeyException.c
 ```
 * 설정 정보 주입하기 
 
-@DataMongoTest(properties = {"spring.data.mongodb.auto-index-creation: true"}
+@DataMongoTest(properties = {"spring.data.mongodb.auto-index-creation: true"})
 
 스프링부트 통합 테스트 애노테이션 처럼 (@SpringBootTest) MongoTest 를 사용할 때도 설정 정보를 주입해줄 수 있다.
 필드값의 인덱스 true 를 검증하고 싶다면 위 애노테이션 설정 정보를 추가한다.
@@ -377,9 +377,14 @@ https://coding-start.tistory.com/139
 앞서 설명했듯 핵심 마이크로서비스의 생성 및 삭제는 메시징 시스템을 이용한 비동기 서비스로  구현한다. 토픽의 이벤트를
 수신하기 위한 메시지 프로세스를 구현하고 빈으로 등록하면 손쉽게 메시지를 소비할 수 있다.
 
+yml # cloud function 설정
+spring.cloud.function.definition: messageProcessor
 product MessageProcessorConfig 참고
 ```
-
+#### + 핵심 마이크로서비스 비동기 메시지 테스트하기
+```
+* product - ProductServiceApplicationTests 참고 
+```
 
 
 
