@@ -104,4 +104,23 @@ docker-compse, 핵심 마이크로서비스 yml 참고
 
 파티션을 사용하지 않고 RabbitMQ 와 마이크로서비스를 테스트한다. 
 
+cd msa-spring-reactive
+./gradlew build && docker-compose build && docker-compose up -d // 핵심 마이크로서비스를 빌드하고 도커 컴포즈 정보를 빌드한다
+
+curl -s localhost:8080/actuator/health | jq -r .status // 마이크로서비스 환경이 정상 작동하는지 확인한다. up 으로 응답하면 테스트 실행 준비 완료
+```
+```
+body='{"productId":1, "name":"product name C", "weight":300, 
+"recommendations":
+[{"recommendationId":1, "author":"author 1","rate":1,"content":"content 1"},
+{"recommendationId":2, "author":"author 2","rate":2,"content":"content 2"},
+{"recommendationId":3, "author":"author 3","rate":3,"content":"content 3"}],
+"reviews":
+[{"reviewId":1,"author 1","subject":"subject 1","content":"content 1"},
+[{"reviewId":2,"author 2","subject":"subject 2","content":"content 2"},
+[{"reviewId":3,"author 3","subject":"subject 3","content":"content 3"}]}'
+
+curl -X POST localhost:8080/product-composite -H "Content-Type: application/json" --data "$body"
+
+커멘드를 실행해서 이벤트를 토픽을 게시한다. 
 ```
