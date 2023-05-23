@@ -386,7 +386,32 @@ product MessageProcessorConfig 참고
 * product - ProductServiceApplicationTests 참고 
 ```
 
+## 상태 점검 API 추가하기
+```
+마이크로서비스가 요청 및 메시지를 처리할 준비가 됐는지 쉽게 확인하고자 모든 마이크로서비스에 상태 점검 API 를 추가한다.
 
+상태점검 API 는 스프링 액추에이터에서 제공하는 엔드포인트를 사용해서 각각의 마이크로서비스가 의존하는 의존성이(DB, 메시징 시스템 등) 
+정상인 경우 UP 으로 응답하고 200 코드를 반환하고, 정상이 아닌 경우 DOWN 을 응답하고 500 코드를 반환한다.
+
+상태 점검 API 는 핵심 마이크로서비스들과 관련 있는 복합 마이크로서비스에 추가해서 자신과 세 가지 핵심 마이크로서비스가 정상인 
+경우에만 UP 으로 응답한다. (응집성) 292 p 
+
+이 엔드포인트를 수동으로 사용하는 테스트 스크립트를 만들어서 모든 마이크로 서비스 및 해당 의존성의 작동 여부를 확인할 수도 있다. 
+```
+```
+* 헬스 액추에이터 구현 및 yml 구성 설정하기
+
+product-composite-service HealthCheckConfiguration 참고 
+
+yml 설정
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*" 
+
+상용화된 시스템에서 공개하는 정보를 최소화 하는 것이 좋다.
+
+액추에이터 정보
+https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part5/ch16 참고
+```
 
 
 
