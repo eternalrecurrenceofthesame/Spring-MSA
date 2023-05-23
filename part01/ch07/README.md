@@ -156,6 +156,23 @@ review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 
 
 review 부트스트랩 클래스 참고
 ```
+### MySQL 테스트 컨테이너 구현하기
+```
+내장형 H2 데이터베이스를 사용하면 도커 컨테이너에 리뷰 모듈을 올리기 위한 빌드시 테스트에 실패하는 오류가 발생한다. 도커 컨테이너에 
+모듈을 올릴 때는 MySql 데이터소스를 사용해야 하는데 MySql 데이터소스를 사용하면 H2 내장 데이터베이스를 사용할 수 없기 때문에 테스트에 실패한다.
+
+MySQL 테스트 컨테이너를 구현해서 테스트할 때 내장형 h2 대신 전용 테스트 컨테이너를 애플리케이션에서 사용하면 데이터소스 문제를 해결할 수 있다.
+```
+```
+* MySQL 테스트 컨테이너 의존성 추가 
+
+implementation platform('org.testcontainers:testcontainers-bom:1.17.6')
+testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+testImplementation 'org.testcontainers:junit-jupiter'
+testImplementation 'org.testcontainers:mysql'
+
+ReviewServiceApplicationTests, MySqlTestBase 참고 
+```
 #### + review-service 테스트하기 
 ```
 review-service PersistenceTests 참고 
