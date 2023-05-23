@@ -42,8 +42,72 @@ eureka:
 ```
 ## 넷플릭스 유레카 서버에 마이크로서비스 연결하기
 ```
-* 테스트 수정하기
+1. 테스트 코드 수정하기
 
-단일 마이크로서비스 테스트시에는 유레카 서버를 실행할 필요가 없기 때문에 @SpringBootTest 애노테이션에 유레카 false 를 추가한다.
+단일 마이크로서비스 테스트시에는 유레카 서버를 실행할 필요가 없기 때문에 @SpringBootTest 애노테이션이 있는 테스트에 유레카 false 를 추가한다.
 @SpringBootTest(webEnviornment=RANDOM_PORT, properties = {"eureka.client.enabled=false"})
+```
+```
+2. @LoadBalanced 를 사용해서 로드밸랜싱 필터를 WebClient 에 주입하기
+
+도커 컴포즈를 구성하면서 복합 마이크로서비스의 포트를 매핑해서 복합 마이크로서비스만 외부에서 접근할 수 있도록 만들었다. 
+복합 마이크로서비스에 @LoadBalcned 를 사용해서 WebClient 빈을 생성할 때 필터에 로드밸런싱을 추가할 수 있다.
+
+이 동작은 컴포넌트 클래스에서 생성자가 실행되어야 수행되므로 통합 컴포넌트 클래스의 생성자를 구성할 때 build 메서드를 사용해서
+초기화해주면 된다.
+
+ProductCompositeServiceApplication, ProductCompositeIntegration 참고
+```
+```
+3. yml 설정 수정하기
+
+복합 마이크로서비스 yml 에서 각 핵심 마이크로서비스의 호스트와 포트의 값을 통합 컴포넌트 클래스에서 사용했다면
+지금부터는 이 값 대신 핵심 마이크로서비스의 API 를 가리키는 기본 URL 선언으로 대체한다.
+
+app:  // DNS 기반 방식 
+  product-service:
+    host: localhost
+    port: 7001 
+앞서 설명했듯이 yml 방식을 사용해서 DNS 기반의 검색서비스를 사용하면 문제가 발생할 수 있다! 
+
+private static final String PRODUCT_SERVICE_URL = "http://product";
+필드 값으로 실제 DNS 이름이 아닌 핵심 마이크로서비스를 유레카 서버에 등록하는 가상 호스트 이름을 사용한다. 
+
+ProductCompositeIntegration 참고 
+```
+```
+4. 핵심 마이크로서비스 yml 설정 수정
+
+spring.application.name 설정으로 가상 호스트 이름이 넷플릭스 유레카로 등록되기 때문에 이 값을 수정해야 한다.
+핵심 msa yml 참고 
+```
+## 개발 프로세스에서 사용할 유레카 구성 설정
+```
+유레카는 다양한 구성 옵션을 제공한다. 상용 환경에서 사용하는 대부분의 구성 옵션에 대한 적절한 기본 값을 제공하지만 기본 구성 값이
+많은 만큼 개발 프로세스에서 사용할 때 시작 시간이 길어질 수 있다. 
+
+개발 과정에서는 이런 대기 시간을 최소화해서 사용하는 것이 유용하다! 
+
+참고로 상용 환경에서는 넷플릭스 유레카 서버의 고가용성을 보장하기위해 하나 이상의 유레카 서버를 사용해야 한다.
+```
+### 유레카 구성 매개변수 알아보기
+```
+https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part4/ch13 참고
+자세한 정보는 spring-cloud eureka docs 를 참고한다
+```
+### 유레카 서버 구성
+```
+* 개발 환경에서 사용하는 유레카 서버 구성
+
+eureka-server yml 참고 342 p 
+```
+### 유레카 서버에 연결할 클라이언트 구성하기 
+```
+각 마이크로서비스의 yml 을 참고한다. 
+```
+## 유레카 검색 서비스 사용하기
+```
+* 도커 이미지 빌드
+
+./gradlew build && docker-compose build
 ```
