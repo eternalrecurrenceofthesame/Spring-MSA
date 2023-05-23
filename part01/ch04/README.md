@@ -100,8 +100,8 @@ docker run product-service:1.0.0 // 도커 실행
 docker-compse, 핵심 마이크로서비스 yml 참고 
 ```
 ```
-2. Kafka, Rabbit 을 도커 컴포즈 구성으로 만들기
+2-1. 파티션 없이 RabbitMQ 사용하기
 
-각 핵심마이크로서비스는 
+파티션을 사용하지 않고 RabbitMQ 와 마이크로서비스를 테스트한다. 
 
 ```
