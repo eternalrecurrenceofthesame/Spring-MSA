@@ -116,11 +116,14 @@ body='{"productId":1, "name":"product name C", "weight":300,
 {"recommendationId":2, "author":"author 2","rate":2,"content":"content 2"},
 {"recommendationId":3, "author":"author 3","rate":3,"content":"content 3"}],
 "reviews":
-[{"reviewId":1,"author 1","subject":"subject 1","content":"content 1"},
-[{"reviewId":2,"author 2","subject":"subject 2","content":"content 2"},
-[{"reviewId":3,"author 3","subject":"subject 3","content":"content 3"}]}'
+{"reviewId":1,"author 1","subject":"subject 1","content":"content 1"},
+{"reviewId":2,"author 2","subject":"subject 2","content":"content 2"},
+{"reviewId":3,"author 3","subject":"subject 3","content":"content 3"}]}'
 
-curl -X POST localhost:8080/product-composite -H "Content-Type: application/json" --data "$body"
+curl -X POST product-composite:8080/product-composite -H "Content-Type: application/json" --data "$body"
 
 커멘드를 실행해서 이벤트를 토픽을 게시한다. 
+
+
+docker compose down 으로 도커 종료 
 ```
