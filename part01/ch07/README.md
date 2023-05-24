@@ -67,6 +67,9 @@ https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part3/ch11
 ```
 * 스프링 부트 3.0 에서 도커 이미지를 테스트 컨테이너로 사용하는 몽고 DB 테스트하기 (새로운 방법)
 
+도커 이미지를 사용해서 테스트 컨테이너를 만들고 테스트 해야하는 이유는 스프링 넷플릭스 유레카 클라이언트로 핵심 마이크로서비스
+모듈을 연결할 때 내장형 데이터베이스를 사용하면 적용되지 않는 문제가 발생하기 때문.
+
 의존관계 추가
 implementation platform('org.testcontainers:testcontainers-bom:1.17.6')
 testImplementation 'org.testcontainers:testcontainers'
@@ -78,8 +81,9 @@ spring.data.mongodb:
   host: localhost
   port: 27017
   database: product-db
-  
-도커 추가후 리팩토링 예정 
+
+MongoDbTestBase 클래스에 몽고디비 컨테이너를 생성하고 몽고디비를 사용하는 곳에서 상속 받으면 된다.
+product-service MongoDbTestBase 참고 
 ```
 ```
 * 스프링 부트 3.0 에서 리액티브 몽고DB 및 임베디드 몽고 사용하는 방법
