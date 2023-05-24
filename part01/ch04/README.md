@@ -105,7 +105,8 @@ docker-compse, 핵심 마이크로서비스 yml 참고
 파티션을 사용하지 않고 RabbitMQ 와 마이크로서비스를 테스트한다. 
 
 cd msa-spring-reactive
-./gradlew build && docker-compose build && docker-compose up -d // 핵심 마이크로서비스를 빌드하고 도커 컴포즈 정보를 빌드한다
+./gradlew build && docker-compose build && docker-compose up -d // 핵심 마이크로서비스를 빌드하고 도커 컴포즈 정보를 빌드한다 
+                                                                   d 옵션을 사용하면 터미널이 잠기지 않고 커맨딩을 계속 할 수 있다.
 
 curl -s localhost:8080/actuator/health | jq -r .status // 마이크로서비스 환경이 정상 작동하는지 확인한다. up 으로 응답하면 테스트 실행 준비 완료
 ```
