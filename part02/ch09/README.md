@@ -32,7 +32,7 @@ DNS 클라이언트는 보통 리졸브된 IP 주소를 캐시하고 DNS 이름�
 ```
 ## 넷플릭스 유레카 서버 설정하기
 ```
-* docker-compose
+*  도커 컴포즈 설정하기 docker-compose
 
 eureka:
   build: spring-cloud/eureka-server
@@ -59,7 +59,20 @@ eureka:
 ProductCompositeServiceApplication, ProductCompositeIntegration 참고
 ```
 ```
-3. yml 설정 수정하기
+3. 유레카 서버 모듈 자바 설정
+
+부트 스트랩 클래스에 @EnableEurekaServer 를 설정한다. eureka-server 참고
+```
+```
+* 그레이들 의존관계 설정하기
+
+implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'(서버)
+implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'(모듈)
+
+유레카서버에는 서버 의존성을 추가하고 MSA 모듈에는 클라이언트 의존성을 추가한다.
+```
+```
+4. yml 설정 수정하기
 
 복합 마이크로서비스 yml 에서 각 핵심 마이크로서비스의 호스트와 포트의 값을 통합 컴포넌트 클래스에서 사용했다면
 지금부터는 이 값 대신 핵심 마이크로서비스의 API 를 가리키는 기본 URL 선언으로 대체한다.
@@ -99,6 +112,9 @@ https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part4/ch13 참�
 ```
 * 개발 환경에서 사용하는 유레카 서버 구성
 
+response-cache-update-interval-ms: 5000 
+# 유레카 서버의 시작시간을 최소화 하기 위한 매개변수 해당 시간마다 캐시된 클라이언트 정보를 업데이트한다.
+
 eureka-server yml 참고 342 p 
 ```
 ### 유레카 서버에 연결할 클라이언트 구성하기 
@@ -107,7 +123,6 @@ eureka-server yml 참고 342 p
 ```
 ## 유레카 검색 서비스 사용하기
 ```
-* 도커 이미지 빌드
-
-./gradlew build && docker-compose build
+전체 도커 컨테이너 빌드
+./gradlew build && docker-compose build && docker-compose up -d // d 옵션을 사용하면 터미널이 잠기지 않는다.
 ```
