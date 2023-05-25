@@ -67,7 +67,7 @@ public void receive(MyMessage message){
 Log.ionfo("Received: {}", message); }
 ```
 ```
-* 바인딩하기
+* 바인딩하기 (토픽과 채널을 연결하는 작업이다.)
 
 바인딩 하려면 빌드 파일에 스타터 의존성을 추가하면 된다.
 implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit:4.0.2'
