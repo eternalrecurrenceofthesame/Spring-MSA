@@ -129,6 +129,56 @@ eureka-server yml 참고 342 p
 ```
 ## 유레카 검색 서비스 사용하기
 ```
-전체 도커 컨테이너 빌드
+* 전체 애플리케이션 빌드 및 도커 컴포즈 빌드
 ./gradlew build && docker-compose build && docker-compose up -d // d 옵션을 사용하면 터미널이 잠기지 않는다.
+```
+### 검색 서비스 테스트해보기
+```
+* 인스턴스 확장
+
+docker-compose up -d --scale review=3 // 리뷰 인스턴스 확장 커맨드 
+
+curl -H "accept:application/json" localhost:8761/eureka/apps -s |jq -r .applications.
+application[].instance[].instanceId // curl 커맨드로 확장된 인스턴스 확인하기
+
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.rev 
+// 클라이언트 로드밸런서로 요청 후 결과에 있는 review 서비스의 주소를 확인
+
+review 서비스의 주소는 인스턴스를 확장했기 때문에 매번 다를 수 있다. 로드 밸런서가 review 서비스 인스턴스를 
+호출할 때 라운드 로빈 방식을 사용하기 때문이다. 
+
+docker-compose logs -f review // review 로그 확인 인스턴스가 돌아가면서 요청에 응답한다. 
+```
+```
+* 인스턴스 축소
+
+docker-compose up -d --scale review=2 
+
+인스턴스가 축소되면 클라이언트(복합 msa) 측에서 호출이 실패할 수 있다. 축소된 정보가 전파되는 데 걸리는 시간 때문.
+전파되는 공백 동안 로드 밸런서가 사라진 인스턴스를 선택할 수 있음 
+```
+```
+* 유레카 서버의 장애 상황 테스트 (유레카 서버 중지)
+
+유레카 서버가 중된되기 전에 클라이언트가 사용 가능한 마이크로서비스 인스턴스에 대한 정보를 이미 읽고 로컬에 
+캐시되어 있으면 문제될 게 없다 하지만 새 인스턴스는 사용할 수 없으며 실행 중인 인스턴스가 종료되더라도 알 수 없다.
+
+docker-compose up -d --scale review=2 --scale eureka=0 // 유레카 서버 중지 2 개의 review 인스턴스 실행
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.rev // review 서비스 주소 2 개 확인
+```
+```
+* review 인스턴스가 중지되는 경우
+
+유레카 서버가 중단되면 클라이언트는 리뷰 인스턴스가 중단됐는지 알지 못하고 라운드 로빈 방식을 이용해서 중지된 
+인스턴스에 요청을 보낼 수 있다. (시간 초과 및 재시도 등의 복원 메커니즘을 사용해서 이를 방지할 수 있다. 뒤 단원에서 설명)
+```
+```
+* 유레카 서버가 중단된 상태에서 product 인스턴스 추가
+
+docker-compose up -d --scale review=1 --scale eureka=0 --scale product=2
+
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.pro // 조회시 하나만 나옴 
+
+product 인스턴스 확장 전 유레카 서버가 중단 됐으므로 클라이언트는 새로운 인스턴스를 알지 못한다 그렇기 때문에
+하나의 인스턴스로만 요청이 몰리게 된다. 
 ```
