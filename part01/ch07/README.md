@@ -359,7 +359,8 @@ spring.cloud.stream:
 ```
 ### 복합 마이크로서비스 메시징 테스트하기
 ```
-* 
+* product-composite-service ProductServiceApplicationTests 참고 
+
 ```
 #### + LocalDateTime 직렬화에 실패하는 경우 해결방법
 ```
