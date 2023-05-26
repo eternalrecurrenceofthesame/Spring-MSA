@@ -122,9 +122,10 @@ body='{"productId":1, "name":"product name C", "weight":300,
 {"reviewId":3,"author 3","subject":"subject 3","content":"content 3"}]}'
 
 curl -X POST product-composite:8080/product-composite -H "Content-Type: application/json" --data "$body"
-
 커멘드를 실행해서 이벤트를 토픽을 게시한다. 
 
+curl localhost:8080/product-composite/1 | jq  // 커맨드로 조회한다.
+curl -X DELETE localhost:8080/product-composite/1  // 커맨드 삭제 후 다시 조회하면 404 에러 메시지가 반환된다.  
 
 docker compose down 으로 도커 종료 
 ```
