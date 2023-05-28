@@ -1,4 +1,7 @@
 # 리액티브 마이크로서비스 개발하기
+
+스프링부트 3.0 을 사용한다. 
+
 ```
 논블로킹 동기 REST API 및 비동기 이벤트 기반 리액티브 마이크로서비스를 개발한다! 리액티브를 기반으로 마이크로서비스를 설계하면 
 유연성,확장성,탄력성을 확보할 수 있다. 
@@ -82,8 +85,8 @@ spring.data.mongodb:
   port: 27017
   database: product-db
 
-MongoDbTestBase 클래스에 몽고디비 컨테이너를 생성하고 몽고디비를 사용하는 곳에서 상속 받으면 된다.
-product-service MongoDbTestBase 참고 
+[test] MongoDbTestBase 클래스에 몽고디비 컨테이너를 생성하고 몽고디비를 사용하는 곳에서 상속 받으면 된다.
+[test] product-service MongoDbTestBase 참고 
 ```
 ```
 * 스프링 부트 3.0 에서 리액티브 몽고DB 및 임베디드 몽고 사용하는 방법
@@ -154,6 +157,8 @@ review 핵심 마이크로서비스는 JPA 를 사용하기 때문에 서비스 
 
 마이크로서비스에서 사용할 스레드의 고갈을 방지하고 마이크로서비스의 논블로킹 처리에 영향을 주지 않게 한다. 264 p
 스케줄러를 사용하는 review - getReviews 메서드 참고 
+
+https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part3/ch10 
 ```
 ```
 * 자바 설정으로 스레드 풀 구성하기
@@ -184,7 +189,7 @@ review-service PersistenceTests 참고
 ```
 ### 데이터베이스 연결 URL 기록하기
 ```
-자체 데이터베이스와 연결된 핵심 마이크로서비스를 확장하는 경우 각 마이크로서비스가 실제로 사용하는 데이터베이스가
+자체 데이터베이스와 연결된 핵심 마이크로서비스의 인스턴스를 도커에서 확장하는 경우 각 마이크로서비스가 실제로 사용하는 데이터베이스가
 무엇인지 파악하기 힘든 문제가 있다.
 
 마이크로서비스가 시작된 직후 접속한 데이터베이스의 URL 을 기록하는 로그문을 추가하면 문제를 해결할 수 있다.
@@ -222,7 +227,8 @@ timestamp: 이벤트 발생 시간
 ```
 * 스프링 클라우드 의존성 추가
 
-spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다 
+spring starter io - cloud stream, kafka, rabbit 의존성을 복합 서비스에 추가한다.
+kafka, rabiit 핵심 마이크로서비스에서는 사용할 메시징 시스템 중 하나를 의존성으로 추가한다. 
 ```
 ### 복합 서비스 컴포넌트에서 이벤트를 생성하고 토픽에 게시하기 
 ```
@@ -245,6 +251,8 @@ StreamBridge 는 부트스트랩 클래스에서 생성해서 복합서비스에
 
 implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2' 추가
 api, 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 참고.
+
+http://localhost:8080/openapi/swagger-ui.html // OpenApi 스웨거 주소
 ```
 ```
 2. 스케줄러 정의하기
@@ -257,7 +265,7 @@ api, 복합 마이크로서비스 부트스트랩 클래스, yml 구성 정보 �
 
 ProductCompositeIntegration 참고  // 전체적인 이해가 필요하면 createProduct 메서드를 참고한다.
 ```
-### 복합 서비스 API 구현하기
+### 복합 마이크로서비스 API 구현하기
 ```
 * productcompositeservice - ProductCompositeServiceImpl 참고
 ```
@@ -394,6 +402,11 @@ MessageProcessorConfig 참고. 간단하게 이벤트가 만들어진 위치를 
 참고 
 https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#spring_cloud_function 
 ```
+#### + spring cloud function 을 사용해서 메시지 소비자를 구성할 때 주의할 점!!!
+```
+래빗 MQ 설치 없이 메시지 소비자를 사용하려면 @EnableRabbit 애노테이션을 messageprocessorconfig 에서 사용해야한다.
+jpa 를 사용하는 경우 따로 애노테이션이 필요 없지만 몽고DB 를 사용하는 경우 이 애노테이션이 없으면 메시지 소비를 하지 않는 문제가 발생한다.
+```
 ```
 * 바인더, 데스티네이션, 그룹
 
@@ -444,3 +457,37 @@ management.endpoints.web.exposure.include: "*"
 액추에이터 정보
 https://github.com/eternalrecurrenceofthesame/Spring5/tree/main/part5/ch16 참고
 ```
+
+## 도커 컴포즈를 사용해서 파티션 없는 RabbitMQ 사용하기
+
+도커 컴포즈 설정 정보는 docker-compose 를 참고한다.
+
+```
+./gradlew build && docker-compose build && docker-compose up -d // 공조 마이크로서비스에서 실행
+curl -s localhost:8080/actuator/health | jq -r .status // 마이크로서비스 환경이 정상 작동하는지 체크
+
+
+간단한 데이터 저장 (데이터 post 시 포스트맨을 사용하는 것을 추천)
+
+{"productId":1, "name":"product name C", "weight":300, 
+"recommendations":
+[{"recommendationId":1, "author":"author 1","rate":1,"content":"content 1"},
+{"recommendationId":2, "author":"author 2","rate":2,"content":"content 2"},
+{"recommendationId":3, "author":"author 3","rate":3,"content":"content 3"}],
+"reviews":
+[{"reviewId":1, "author":"author 1", "subject":"subject 1","content":"content 1"},
+{"reviewId":2, "author":"author 2", "subject":"subject 2","content":"content 2"},
+{"reviewId":3, "author":"author 3", "subject":"subject 3","content":"content 3"}]}
+
+curl -X POST lcoalhost:8080/product-composite -H "Content-Type: application/json" --data "$body"
+
+localhost:15762/#/queues // 래빗 홈페이지에서 대기열을 확인할 수 있다. 
+
+curl localhost:8080/product-composite/1 | jq  // 조회 및 삭제 
+curl -X DELETE localhost:8080/product-composite/1
+
+docker-compose down // 테스트 마무리 
+```
+
+토픽 및 카프카 테스트 추후 추가 예정. 
+
