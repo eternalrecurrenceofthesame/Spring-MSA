@@ -1,0 +1,115 @@
+# 1. 포트
+server.port: 7001
+server.error.include-message: always # 에러메시지 포함할지 선택하는 옵션 ;;;
+
+# 2. 데이터베이스 설정 (애플리케이션 mongo db)
+spring.data.mongodb:
+  host: localhost
+  port: 27017
+  database: product-db
+
+# 2.1 내장 몽고 DB 설정 (필요시 참고 컨테이너르 사용한다.)
+#de:
+#  flapdoodle:
+#    mongodb:
+#      embedded:
+#        version: 4.0.2
+
+# 3. 로깅 설정
+logging:
+  level:
+    root: INFO
+    se.magnus: DEBUG
+    productservice: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG # 로그 레벨을 디버그로 설정하면 MongoDB 문이 실행되는지 로그에서 확인할 수 있다.
+
+# 4. 메시지 프로세서 설정
+spring.cloud.function.definition: messageProcessor
+
+# 5. 액추에이터 엔드포인트 설정
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
+
+# 6. 유레카 설정
+spring.application.name: product
+app.eureka-server: localhost
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${app.eureka-server}:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
+# 7. 클라우드 스트림 메시징 설정
+spring.cloud.stream:
+  defaultBinder: rabbit # 바인더로 래빗 호출 바인더는 외부 메시지 시스템과 통합을 담당한다.
+  default.contentType: application/json
+  bindings.messageProcessor-in-0: # product-service 모듈을 메시지 소비자로 설정
+    destination: products # products 채널을 토픽과 연결시켜주는 역할을 한다.
+    group: productsGroup # products 를 그룹으로 묶어서 관리하는 구성 설정
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer: # 재시도 및 데드 레터 대기열
+  maxAttempts: 3
+  backOffInitialInterval: 500
+  backOffMaxInterval: 1000
+  backOffMultiplier: 2.0
+
+spring.cloud.stream.rabbit.bindings.messageProcessor-in-0.consumer:
+  autoBindDlq: true
+  republishToDlq: true
+
+spring.cloud.stream.kafka.bindings.messageProcessor-in-0.consumer:
+  enableDlq: true
+
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
+
+spring.rabbitmq:
+  host: 127.0.0.1
+  port: 5672
+  username: guest
+  password: guest
+
+# 7-1. 메시지 파티션 설정
+---
+spring.config.activate.on-profile: streaming_partitioned
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
+  partitioned: true
+  instanceCount: 2
+
+---
+spring.config.activate.on-profile: streaming_instance_0
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer.instanceIndex: 0
+
+---
+spring.config.activate.on-profile: streaming_instance_1
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer.instanceIndex: 1
+
+# 8. 도커 설정
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8080 # 도커 컨테이너에서 사용할 포트
+
+spring.data.mongodb.host: mongodb
+spring.rabbitmq.host: rabbitmq
+spring.cloud.stream.kafka.binder.brokers: kafka
+app.eureka-server: eureka
+
+---
+# 번외. 카프카 사용시 카프카 개별 설정
+spring.config.activate.on-profile: kafka # 카프카 프로필 구성
+
+management.health.rabbit.enabled: false # 카프카 사용시 래빗이 제공하는 헬스체크를 false 로 구성
+spring.cloud.stream.defaultBinder: kafka # 바인더가 카프카를 호출하도록 설정한다.
+spring.kafka.bootstrap-servers: kafka:9092 # 부트스트랩 서버 설정
+spring.cloud.stream.kafka.binder.replication-factor: 1 # 토픽 복제 요소수
+

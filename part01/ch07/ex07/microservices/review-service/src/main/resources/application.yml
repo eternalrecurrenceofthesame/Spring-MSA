@@ -1,0 +1,112 @@
+# 1. 포트
+server.port: 7003
+server.error.include-message: always
+
+# 2. 데이터베이스 설정  (MySQL)
+spring.datasource:
+  url: jdbc:mysql://localhost/review-db
+  username: user
+  password: pwd
+
+spring.datasource.hikari.initializationFailTimeout: 6000 # JPA 는 히카리 CP 를 연결 풀로 사용한다. 컴퓨터에서 시작 문제를 최소화하고자 최대 60 초 동안 데이터베이스 연결을 기다린다.
+
+spring.jpa.hibernate.ddl-auto: update # !! 이 옵션은 실제 프로덕션 환경에서 사용하면 안 된다 !!
+
+# 3. 로깅 설정
+logging:
+  level:
+    root: INFO
+    se.magnus: DEBUG
+    org.hibernate.SQL: DEBUG # 로그 레벨을 디버그로 설정해서 SQL 문과 실제 값을 출력한다. 상용환경에서는 지양한다.
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# 4. 메세지 프로세서 설정
+spring.cloud.function.definition: messageProcessor
+
+# 5. 액추에이터 엔드포인트 설정
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
+
+# 6. 유레카 설정
+spring.application.name: review
+
+app.eureka-server: localhost
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${app.eureka-server}:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
+# 7. 클라우드 스트림 메시징 설정
+spring.cloud.stream:
+  defaultBinder: rabbit
+  default.contentType: application/json
+  bindings.messageProcessor-in-0:
+    destination: reviews
+    group: reviewsGroup
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
+  maxAttempts: 3
+  backOffInitialInterval: 500
+  backOffMaxInterval: 1000
+  backOffMultiplier: 2.0
+
+spring.cloud.stream.rabbit.bindings.messageProcessor-in-0.consumer:
+  autoBindDlq: true
+  republishToDlq: true
+
+spring.cloud.stream.kafka.bindings.messageProcessor-in-0.consumer:
+  enableDlq: true
+
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
+
+spring.rabbitmq:
+  host: 127.0.0.1
+  port: 5672
+  username: guest
+  password: guest
+
+# 7-1. 메시지 파티션 설정
+---
+spring.config.activate.on-profile: streaming_partitioned
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer:
+  partitioned: true
+  instanceCount: 2
+---
+spring.config.activate.on-profile: streaming_instance_0
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer.instanceIndex: 0
+---
+spring.config.activate.on-profile: streaming_instance_1
+
+spring.cloud.stream.bindings.messageProcessor-in-0.consumer.instanceIndex: 1
+
+
+---
+# 8. 도커 프로필 설정
+
+spring.config.activate.on-profile: docker
+
+server.port: 8080
+
+spring.datasource.url: jdbc:mysql://mysql/review-db
+spring.rabbitmq.host: rabbitmq
+spring.cloud.stream.kafka.binder.brokers: kafka
+app.eureka-server: eureka
+
+---
+# 번외. 카프카 프로필 설정
+spring.config.activate.on-profile: kafka
+
+management.health.rabbit.enabled: false
+spring.cloud.stream.defaultBinder: kafka
+spring.kafka.bootstrap-servers: kafka:9092
+spring.cloud.stream.kafka.binder.replication-factor: 1

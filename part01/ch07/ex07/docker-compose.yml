@@ -1,0 +1,94 @@
+# 파티션 없이 래빗 MQ 를 사용하는 도커 컴포즈 설정
+version: '3.8'
+
+services:
+  product:
+    build: microservices/product-service
+    mem_limit: 512m # 메모리 제한
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mongodb:
+        condition: service_healthy # 몽고 디비가 실행중이고 헬스 체크가 정상일 때만 컨테이너를 실행한다. 239
+      rabbitmq:
+        condition: service_healthy # 래빗 서비스가 정상 동작할 때까지 기다렸다가 컨테이너를 시작한다.
+
+  recommendation:
+    build: microservices/recommendation-service
+    mem_limit: 512m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  review:
+    build: microservices/review-service
+    mem_limit: 512m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  product-composite:
+    build: microservices/product-composite-service
+    mem_limit: 512m
+    ports:
+      - "8080:8080" # 포트를 매핑한 product-composite 서비스만 도커 외부에서 접근할 수 있고 다른 msa 는 외부에서 접근 불가능하다!
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+
+  mongodb:
+    image: mongo:6.0.4
+    mem_limit: 512m
+    ports:
+      - "27017:27017"
+    command: mongod
+    healthcheck:
+      test: "mongostat -n 1"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+
+  mysql:
+    image: mysql:8.0.33
+    mem_limit: 512m
+    ports:
+      - "3306:3306" # 포트 중복 조심
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpwd
+      - MYSQL_DATABASE=review-db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pwd
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 5s
+      timeout: 2s
+      retries: 100 # mysql 헬스 테스트에 실패하는 경우 60 -> 100 으로 재시도 값을 늘려서 실행시킨다.
+
+  rabbitmq:
+    image: rabbitmq:3.11.8-management
+    mem_limit: 512m
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 2s
+      retries: 60
+
+  eureka:
+    build: spring-cloud/eureka-server
+    mem_limit: 512m
+    ports:
+      - "8761:8761"
