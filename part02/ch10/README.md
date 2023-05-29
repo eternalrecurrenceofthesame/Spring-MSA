@@ -71,6 +71,7 @@ spring.cloud.gateway.routes:
       - Path=/product-composite/**
       
 lb:// 는 스프링 클라우드 게이트웨이가 클라이언트 측 로드 밸런스를 사용해 검색 서비스에서 대상을 찾도록 지시한다.
+(참고로 로드 밸런싱은 현재 시점에서 게이트웨이와 복합 마이크로서비스에서 사용한다.)
 
 요청 라우팅 예시
 curl http://localhost:8080/product-composite/2 
