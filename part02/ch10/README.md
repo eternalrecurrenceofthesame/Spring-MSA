@@ -37,7 +37,7 @@ gateway - HealthCheckConfiguration, 부트스트랩 클래스 참고
 ```
 * 유레카 서버 등록 및 액추에이터와 로깅 레벨 설정하기
 
-gateway yml 파일 참고
+gateway yml 파일 참고 (게이트웨이도 유레카 서버에 등록해서 사용한다.)
 ```
 ### 라우팅 규칙
 ```
