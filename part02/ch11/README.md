@@ -72,12 +72,27 @@ HTTP 기본 인증을 사용해 검색 서비스(유레카) 에 대한 접근을
 ```
 OAuth 2.0 및 OIDC 기반의 보안 API 로 로컬 테스트 및 완전히 자동화된 테스트를 실행하고자 OAuth 2.0 기반의 권한 부여 서버를 
 직접 구현해본다.
-```
-#### 인증 서버 설정을 구현
-```
-AuthServerConfig 참고 
-```
 
+sprin-cloud authorization-server  참고
+
+config: AuthServerConfig(Auth 2.0 설정 정보) , DefaultSecurityConfig(시큐리티 기본 설정)
+jose: keygenerateutils 클래스를 사용해서 (jwk 서명 키)를 생성한다. 
+```
+## HTTPS 를 사용한 외부 통신 보호
+```
+* HTTPS 를 사용해서 통신을 암호화 하기 위한 준비
+
+HTTPS 인증서 생성: 개발 목적의 자체 인증서 생성
+에지서버 구성: 인증서를 사용해 HTTPS 기반 외부 트래픽만 허용하도록 에지 서버를 구성 
+
+생성된 인증서 파일은 gateway resources keystore 참고한다
+프로젝트 빌드시 .jar 파일에 포함시킬 수 있고 런타임시 keystore/dege.p12 클래스패스로 접근할 수 있다.
+```
+```
+* 인증서를 사용하기 위한 에지서버 설정
+
+gateway yml, docker-compose 참고
+```
 
 
 
