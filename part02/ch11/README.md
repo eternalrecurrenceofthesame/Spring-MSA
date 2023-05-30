@@ -69,6 +69,15 @@ HTTP 기본 인증을 사용해 검색 서비스(유레카) 에 대한 접근을
 외부 통신은 https 로 보호하고 시스템 환경에서는 http 를 사용해서 통신한다.
 ```
 ### 권한 부여 서버 추가하기
+
+권한 부여 서버는 아파치 라이선스 2.0 리소스를 사용해서 구현한다. 
+
+아파치 라이선스 2.0 에 대해서는 이 글을 참고. https://namu.wiki/w/%EC%95%84%ED%8C%8C%EC%B9%98%20%EB%9D%BC%EC%9D%B4%EC%84%A0%EC%8A%A4
+
+권한 부여 서버를 만드는 상세 정보는 이 글을 참고한다. 
+
+https://github.com/eternalrecurrenceofthesame/Spring-security-in-Action/tree/main/ch13
+
 ```
 OAuth 2.0 및 OIDC 기반의 보안 API 로 로컬 테스트 및 완전히 자동화된 테스트를 실행하고자 OAuth 2.0 기반의 권한 부여 서버를 
 직접 구현해본다.
@@ -82,24 +91,96 @@ jose: keygenerateutils 클래스를 사용해서 (jwk 서명 키)를 생성한�
 ```
 * HTTPS 를 사용해서 통신을 암호화 하기 위한 준비
 
-HTTPS 인증서 생성: 개발 목적의 자체 인증서 생성
+HTTPS 인증서 생성: 개발 목적의 자체 서명 인증서 생성
 에지서버 구성: 인증서를 사용해 HTTPS 기반 외부 트래픽만 허용하도록 에지 서버를 구성 
 
-생성된 인증서 파일은 gateway resources keystore 참고한다
+생성된 자체 서명 인증서 파일은 gateway resources keystore 참고한다
 프로젝트 빌드시 .jar 파일에 포함시킬 수 있고 런타임시 keystore/dege.p12 클래스패스로 접근할 수 있다.
 ```
 ```
-* 인증서를 사용하기 위한 에지서버 설정
+* 인증서를 사용하는 에지서버 설정
+
+개발 환경에서는 HTTPS 클래스패스로 인증서를 제공해도 되지만, 상용 환경 등의 다른 환경에 적용해서는 안 된다.
+런타임에 클래스패스 인증서를 외부 인증서로 교체해서 사용해야 한다. 
 
 gateway yml, docker-compose 참고
 ```
+### 런타임에 자체 서명 인증서 교체하기
+```
+앞서 설명했듯 개발 환경에서는 HTTPS 인증서를 .jar 파일 안에 두는 것이 유용하지만 테스트나 상용 환경과 같은 런타임
+환경에서는 공인된 인증기관 CA 에서 서명한 인증서를 사용해야 한다.
 
+또한 도커 환경에서 .jar 파일이 포함된 도커 이미지를 사용할 때는 .jar 파일을 다시 빌드할 필요 없이 인증서를 지정해서
+사용할 수도 있어야 한다. (빌드해서 이미지를 만들지 않고 인증서를 지정해서 사용한다는 의미)
 
+도커 컨테이너의 볼륨과 도커 호스트에 있는 인증서를 매핑해서 사용하면 된다. 394 p 
+(도커를 잘 모르기 때문에 일단 스킵한다.)
+```
+## 검색 서비스 접근 보안 
+```
+스프링 시큐리티 설정으로 유레카 검색 서버 API 및 웹 페이지에 대한 접근을 제한한다.
 
+유레카 시큐리티 인증 정보를 추가했기 때문에 다른 마이크로서비스 모듈이 유레카 서버에 등록되기 위해서는 시큐리티 아이디와 
+비밀번호를 알고 있어야 한다.
 
+마이크로서비스 모듈이 유레카에 등록되는 주소 값을 설정하면서 아이디와 패스워드를 넘겨주고 인증할 수 있도록 마이크로서비스 
+구성 정보를 아래와 같이 수정한다. 
+"http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
 
+유레카 서버에 등록하기 위해서는 마이크로 서비스 모듈에서 유레카 시큐리티 서버의 아이디와 비밀번호를 알아야 한다. 
 
+유레카 서버에 등록된 인스턴스 목록을 게이트웨이를 통해서 조회하는 예시 
+curl -H "accept:application/json" https://u:p@localhost:8443/eureka/api/apps -ks | jq
+-r .applications.application[].instance[].instanceId  
 
+eureka-server yml, securityconfig 및 msa 모듈 yml 참고 
+```
+## OAuth 2.0 과 OpenID Connect 를 사용한 API 접근 인증 및 권한 부여 
 
+권한 부여 서버를 설계했고 HTTPS 를 사용해서 게이트웨이의 API 요청 및 응답을 암호화 했다. 그리고 유레카 서버에 스프링 시큐리티
 
+HTTP 기본 인증을 사용해서 사용자 이름과 암호가 있어야 접근할 수 있도록 검색 서버 API 및 웹 페이지에 대한 접근을 제한했다. 
 
+권한 부여서버를 바탕으로 게이트웨이 에지 서버와 product-composite 서비스를 OAuth 2.0 리소스 서버로 리팩토링 한다. 
+
+```
+에지 서버는 권한 부여 서버에서 발급한 서명(JWK) 을 사용해 접근 토큰의 유효성을 검사한다. product-composite 서비스에 접근하려면
+OAuth 2.0 스코프가 추가된 접근 토큰이 필요하다.
+
+product:read 스코프 (읽기)
+product:write 스코프 (생성 삭제) 
+```
+### 게이트웨이와 product-composite 리팩토링
+```
+* 게이트웨이 시큐리티 구현
+
+gateway securityconfig, yml 참고 
+```
+```
+* product-composite 시큐리티 구현 
+
+- api 를 호출할 때마다 관련된 JWT 접근 토큰을 로그로 기록하는 메서드를 구현한다.
+- 인증 서버에서 jwk 서명키를 받기 위한 액세스 토큰 발행자를 yml 으로 설정한다. 
+
+product-composite ProductCompositeServiceImpl, SecurityConfig, yml 참고 
+```
+```
+스프링 시큐리티를 구현한 모듈에서 스프링 기반 통합 테스트를 실행할 때는 csrf 와 엔드포인트 접근 인증 요구를 
+비활성화 해야한다. 
+
+TestSecurityConfig 를 구현해서 이런식으로 추가하면 구현한 자바 설정을 사용할 수 있다. 
+
+@SpringBootTest(
+  webEnvironment = RANDOM_PORT,
+  classes = {TestSecurityConfig.class},
+  properties = {
+    "spring.security.oauth2.resourceserver.jwt.issuer-uri=",
+    "spring.main.allow-bean-definition-overriding=true",
+    "eureka.client.enabled=false"})
+```
+
+HTTPS 요청으로 애플리케이션에 접근한다. 유레카와 복합 마이크로서비스에 접근하려면 인증 서버로부터  액세스 토큰을 받아서 
+
+접근할 수 있도록 인증서버와 리소스 서버(유레카, 복합마이크로서비스) 를 구현했다. 지금까지 구현한 내용을 테스트 한다. 
+
+## 로컬 권한 부여서버를 사용한 테스트 (직접 구현한 권한부여 서버를 의미함) 
