@@ -112,9 +112,9 @@ curl http://localhost:7001/product/123
 ```
 ## API 설계하기
 
-API 모듈은 공조 마이크로서비스에서 관리하는 각각의 마이크로서 서비스가 사용할 API 스펙을 정의하는 모듈이다.
+API 모듈은 공조 마이크로서비스에서 관리하는 각각의 마이크로서 서비스가 사용할 API 스펙을 정의하는 모듈이다. 이 모듈에서는
 
-이 모듈에는 API 모델 뿐만 아니라 마이크로서비스를 호출하는 엔드포인트 서비스 인터페이스를 제공한다. 
+API 모델 뿐만 아니라 마이크로서비스를 호출하는 엔드포인트 서비스 인터페이스와 공통 예외 모델을 제공한다. 
 
 ## 마이크로 서비스 구현하기
 
@@ -122,8 +122,16 @@ API 모듈은 공조 마이크로서비스에서 관리하는 각각의 마이�
 
 ### 복합 마이크로서비스 구현 
 ```
-복합 마이크로서비스는 세 가지 핵심 마이크로서비스를 호출하는 역할을 한다. 핵심 마이크로서비스 발신 요청을
-처리하는 통합 컴포넌트와 복합 서비스 자체 API 구현으로 나뉜다. 122p
+복합 마이크로서비스는 세 가지 핵심 마이크로서비스를 호출하는 역할을 한다
+(핵심 마이크로 서비스를 하나로 묶어서 하나로 사용할 수 있게 해주는 파사드의 역할을 한다.)
+
+복합 마이크로서비스 발신 요청을 처리하는 통합 컴포넌트(ProductCompositeIntegration) 와
+복합 서비스 자체 API (ProductCompositeImpl) 구현으로 나뉜다. 122p
+
+이렇게 두 부분으로 나누게 되면 단위 테스트와 통합 테스트를 간편하게 자동화 할 수 있고 통합 컴포넌트를
+모의 객체로 대체해 서비스 구현을 개별적으로 테스트하기 쉬워진다. 
+
+ProuctCompositeImpl -> ProductCompositeIntegration 
 ```
 ```
 * 통합 컴포넌트 구현하기 ProductCompositeIntegration 참고
@@ -142,35 +150,9 @@ exchange 메서드를 사용하면 요청 후 응답값을 받는다.
 * 복합 API 서비스 구현하기 ProductCompositeServiceImpl
 
 핵심 서비스에 적용한 것처럼 복합 마이크로 서비스를 호출하기 위한 RestController 를 구현한다
-ProductCompositeServiceImpl 참고 
-
-비즈니스 로직 계층 ProductCompositeServiceImpl 을 마이크로 서비스 구현에 추가하면 비즈니스 로직과
-프로토콜별 코드 ProductCompositeService 가 분리돼 테스트와 재사용이 쉬워진다 130 p 
 ```
-## 복합 마이크로 서비스를 통해서 핵심 마이크로 서비스를 호출해보기
+## API 테스트 
 ```
-앞서 만든 복합 마이크로 서비스(product-composite-service 참고) 는 상품에 대한 정보를 요약해서 보여주는 통합 컴포넌트와 
-복합 서비스를 제공한다.
-(product-composite-serivce 의 통합 컴포넌트 통해서 요청을 처리하고, 복합 서비스로 3 개의 컴포넌트 정보를 모아서 summary 
-값을 제공하는 서비스 API 로직을 구현했다.)
-
-쉽게 말해서 핵심 마이크로 서비스(상품, 상품 추천, 리뷰) 에서 필요한 값을 모아서 요약된 서비스를 제공한다. 
-```
-```
-* 핵심 마이크로서비스 API 구현의 예외 처리
-
-복합 마이크로 서비스의 통합 컴포넌트가 호출하는 핵심마이크로 서비스 API 에서 예외가 발생하는 경우 
-상품 조회는 예외를 던지지만, 추천,리뷰 조회의 경우 간단하게 경고 로그만 남긴다.
-
-ProductCompositeIntegration 컴포넌트 클래스 참고
-```
-## API 수동 테스트
-
-지금까지 만든 공조 마이크로 서비스를 수동으로 조회하는 테스트를 수동으로 해보겠음! 
-
-```
-* 정상 요청
-
 ./gradlew build 전체 빌드 커멘드
 
 java -jar /microservices/product-composite-service/build/libs/파일명.jar &
@@ -243,4 +225,3 @@ badrequest 조회
 java -jar microservices/product-composite-service/build/libs/*.jar & 마이크로 서비스 부팅
 ./test-em-all.bash 테스트 스크립트 실행 
 ```
-
