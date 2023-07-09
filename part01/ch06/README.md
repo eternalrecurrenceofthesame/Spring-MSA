@@ -118,6 +118,39 @@ ProductCompositeServiceImpl(api 구현), ProductCompositeIntegration(통합 컴�
 ```
 ProductCompositeServiceApplicationTests 참고 
 ```
+#### 데이터베이스 이미지 파일 도커 컴포즈에 추가하기
+```
+  mongodb:
+    image: mongo:6.0.4
+    mem_limit: 512m
+    ports:
+      - "27017:27017"
+    command: mongod
+    healthcheck:
+      test: "mongostat -n 1"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+
+  mysql:
+    image: mysql:8.0.33
+    mem_limit: 512m
+    ports:
+      - "3306:3306" # 포트 중복 조심
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpwd
+      - MYSQL_DATABASE=review-db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pwd
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 5s
+      timeout: 2s
+      retries: 100 # mysql 헬스 테스트에 실패하는 경우 60 -> 100 으로 재시도 값을 늘려서 실행시킨다.
+```
+
+데이터베이스 도커 이미지파일을 생성하고 도커를 실행할 때 헬스체크에 실패하는 경우가 있는데 이 경우 재시도 횟수를 늘리는 것이 해결 방법이 될 수 있다.
+
 ### 5. 새 API 및 영속성 계층의 수동 테스트 진행
 ```
 ./gradlew build 244 p 참고 도커 실습 후 업데이트 예정. 
