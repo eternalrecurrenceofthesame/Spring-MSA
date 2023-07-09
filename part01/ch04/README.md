@@ -44,45 +44,45 @@ docker run product-service:1.0.0 // 도커 실행
 
 ### 도커 컴포즈를 사용해서 마이크로서비스 환경 관리하기
 ```
-전체 마이크로서비스 시스템 환경을 관리하는 도커 컴포즈를 만들어본다. 
+도커 컴포즈를 사용하면 단일 커맨드로 도커 컨테이너 기반 공조 마이크로 서비스 그룹의 로그를 기록하고 빌드, 시작, 종료할 수 있다.
 ```
 ```
-1. MongoDB, MySQL 을 도커 컴포즈 구성으로 만들기
+1. 핵심 마이크로서비스에 도커 설정하기
 
-각 핵심마이크로서비스는 데이터소스로 데이터베이스와 연결한다. 공조 마이크로서비스의 도커 컴포즈는 각 데이터베이스의 이미지 파일을 가져와서 
-컨테이너에 올리고 관리할 수 있는 환경 설정을 제공한다. 
+각 마이크로서비스에 Dockerfile 과 yml 설정을 한다. (앞서 설명한 과정.)
 
-도커 컴포즈가 제어하는 시스템 환경에 MongoDB , MySQL 을 추가하고 도커 컨테이너로 실행될 때도 데이터베이스를 찾을 수 있도록 추가 구성한다.
+2. 복합 마이크로서비스에 도커 설정하기
 
-docker-compse, 핵심 마이크로서비스 yml 참고 
+복합 마이크로서비스는 핵심 서비스를 찾을 수 있어야 하므로 각 핵심 마이크로서비스의 메타 정보를 yml 설정으로 만들어준다. 
+
+3. 공조 마이크로서비스에 도커 컴포즈 설정하기
+
+포트를 매핑한 product-composite 서비스만이 도커의 외부에서 접근할 수 있고 다른 마이크로서비스는 외부에서 접근할 수 없다.
+docker-compose.yml 참고 
 ```
 ```
-2-1. 파티션 없이 RabbitMQ 사용하기
+* 도커 이미지를 빌드하고 마이크로서비스 실행하기 
 
-파티션을 사용하지 않고 RabbitMQ 와 마이크로서비스를 테스트한다. 
+./gradlew build  공조 마이크로서비스 빌드
+docker-compose build  도커 이미지 파일 생성
 
-cd msa-spring-reactive
-./gradlew build && docker-compose build && docker-compose up -d // 핵심 마이크로서비스를 빌드하고 도커 컴포즈 정보를 빌드한다 
-                                                                   d 옵션을 사용하면 터미널이 잠기지 않고 커맨딩을 계속 할 수 있다.
+docker images | grep msa-spring-cloud  도커 이미지 파일 확인
 
-curl -s localhost:8080/actuator/health | jq -r .status // 마이크로서비스 환경이 정상 작동하는지 확인한다. up 으로 응답하면 테스트 실행 준비 완료
+docker-compose up -d  마이크로서비스 시작 -d 옵션을 사용하면 분리 컨테이너 모드로 동작
+docker-compose logs -f  컨테이너의 시작 로그 모니터링
+
+docker-compose down 마이크로 서비스 종료하기 
 ```
 ```
-body='{"productId":1, "name":"product name C", "weight":300, 
-"recommendations":
-[{"recommendationId":1, "author":"author 1","rate":1,"content":"content 1"},
-{"recommendationId":2, "author":"author 2","rate":2,"content":"content 2"},
-{"recommendationId":3, "author":"author 3","rate":3,"content":"content 3"}],
-"reviews":
-{"reviewId":1,"author 1","subject":"subject 1","content":"content 1"},
-{"reviewId":2,"author 2","subject":"subject 2","content":"content 2"},
-{"reviewId":3,"author 3","subject":"subject 3","content":"content 3"}]}'
+* API 호출 예시
 
-curl -X POST product-composite:8080/product-composite -H "Content-Type: application/json" --data "$body"
-커멘드를 실행해서 이벤트를 토픽을 게시한다. 
+curl localhost:8080/product-composite/123 -s | jq .
+앞서 설명했듯이 포트를 지정한 복합 서비스만 외부에서 접근 할 수 있다.
+```
+### 도커 컴포즈를 사용한 마이크로서비스 환경 테스트 
+```
+테스트 스크립트에 도커 컴포즈를 통합한다. 테스트 스크립트는 마이크로서비스 환경을 자동으로 시작하고, 필요한 모든 테스트를
+실행해 마이크로서비스 환경이 예상대로 작동하는지 확인하며, 끝으로 테스트 실행의 잔재를 제거한다.
 
-curl localhost:8080/product-composite/1 | jq  // 커맨드로 조회한다.
-curl -X DELETE localhost:8080/product-composite/1  // 커맨드 삭제 후 다시 조회하면 404 에러 메시지가 반환된다.  
-
-docker compose down 으로 도커 종료 
+test-em-all.bash 참고 
 ```
