@@ -54,3 +54,11 @@ ch01 서킷 브레이커 부분 참고
 처리 흐름에서 나오는 여러 마이크로서비스의 로그 메시지를 쉽게 추적할 수 있도록 로그 메시지에 
 상관 ID 를 덧붙인다. 슬루스는 추적 데이터를 저장 및 시각화하고자 분산 추적 시스템인 집킨으로 보낸다. 
 ```
+#### + 스프링 클라우드 의존관계 주입시 주의할 점(gradle)
+```
+일반적으로 spring starter io 를 통해서 클라우드 관련 의존관계를 주입받을 경우 gradlew 빌드시 제대로
+동작하지 않는 경우가 발생한다.
+
+이 문제를 해결하려면 springCloudVersion 정보와 dependencyManagement 정보를 따로 설정해줘야 한다.
+eureka-server, authorizsation-server gradle 의 양식을 참고
+```
