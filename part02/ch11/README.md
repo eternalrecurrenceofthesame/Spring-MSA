@@ -89,13 +89,16 @@ jose: keygenerateutils 클래스를 사용해서 (jwk 서명 키)를 생성한�
 ```
 ## HTTPS 를 사용한 외부 통신 보호
 ```
-* HTTPS 를 사용해서 통신을 암호화 하기 위한 준비
+* HTTPS 를 사용해서 통신을 암호화 하기 위한 준비 392p
 
 HTTPS 인증서 생성: 개발 목적의 자체 서명 인증서 생성
-에지서버 구성: 인증서를 사용해 HTTPS 기반 외부 트래픽만 허용하도록 에지 서버를 구성 
+에지서버 구성: 인증서를 사용해 HTTPS 기반 외부 트래픽만 에지 서버에 접근을 허용하도록 구성 
 
 생성된 자체 서명 인증서 파일은 gateway resources keystore 참고한다
 프로젝트 빌드시 .jar 파일에 포함시킬 수 있고 런타임시 keystore/dege.p12 클래스패스로 접근할 수 있다.
+
++ keytool 을 사용해서 자체 서명 인증서 생성하는 방법
+https://velog.io/@jummi10/keytool로-local에서-SSL-인증서-생성-및-적용 참고 
 ```
 ```
 * 인증서를 사용하는 에지서버 설정
@@ -118,16 +121,17 @@ gateway yml, docker-compose 참고
 ```
 ## 검색 서비스 접근 보안 
 ```
-스프링 시큐리티 설정으로 유레카 검색 서버 API 및 웹 페이지에 대한 접근을 제한한다.
+스프링 시큐리티 설정으로 유레카 검색 서버 API 및 웹 페이지에 대한 접근을 제한할 수 있다.
 
-유레카 시큐리티 인증 정보를 추가했기 때문에 다른 마이크로서비스 모듈이 유레카 서버에 등록되기 위해서는 시큐리티 아이디와 
-비밀번호를 알고 있어야 한다.
+유레카 서버에 시큐리티 인증 정보를 추가하고 마이크로서비스가 유레카 서버에 등록될 때 인증된 서비스라는 것을 검증하기 위해
+등록시 인증 정보를 포함한 요청을 보내도록 설계한다.
 
 마이크로서비스 모듈이 유레카에 등록되는 주소 값을 설정하면서 아이디와 패스워드를 넘겨주고 인증할 수 있도록 마이크로서비스 
-구성 정보를 아래와 같이 수정한다. 
+구성 정보를 아래와 같이 수정했다.
 "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
 
-유레카 서버에 등록하기 위해서는 마이크로 서비스 모듈에서 유레카 시큐리티 서버의 아이디와 비밀번호를 알아야 한다. 
+유레카 서버에 등록되려면 마이크로서비스 모듈에서 유레카 시큐리티 서버의 아이디와 비밀번호를 알아야 한다. 
+
 
 유레카 서버에 등록된 인스턴스 목록을 게이트웨이를 통해서 조회하는 예시 
 curl -H "accept:application/json" https://u:p@localhost:8443/eureka/api/apps -ks | jq
@@ -165,7 +169,7 @@ gateway securityconfig, yml 참고
 product-composite ProductCompositeServiceImpl, SecurityConfig, yml 참고 
 ```
 ```
-스프링 시큐리티를 구현한 모듈에서 스프링 기반 통합 테스트를 실행할 때는 csrf 와 엔드포인트 접근 인증 요구를 
+스프링 시큐리티를 구현한 모듈에서 스프링 기반 통합 테스트를 실행할 때는 csrf 와 엔드포인트 접근시 인증 요구를 
 비활성화 해야한다. 
 
 TestSecurityConfig 를 구현해서 이런식으로 추가하면 구현한 자바 설정을 사용할 수 있다. 
@@ -189,7 +193,6 @@ HTTPS 요청으로 애플리케이션에 접근한다. 복합 마이크로서비
 ```
 ./gradlew build && docker-compse build 전체 애플리케이션을 새로 빌드하고 이미지 파일을 생성한다. 
 
-
 * 승인코드 그랜트유형을 사용해서 액세스 토큰 얻기 
 
 https://localhost:8443/oauth/authorize?response_type=code&client_id=reader&redirect_uri=http://my.redirect.uri&scope
@@ -199,4 +202,3 @@ https://localhost:8443/oauth/authorize?response_type=code&client_id=reader&redir
 
 curl -k https://reader:secret@localhost:8443
 ```
-
