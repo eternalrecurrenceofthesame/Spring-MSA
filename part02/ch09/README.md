@@ -65,6 +65,8 @@ ProductCompositeServiceApplication, ProductCompositeIntegration 참고
 
 각각의 핵심 마이크로서비스에 접근하기 전 로드 밸런싱을 적용해서 핵심 마이크로서비스의 수에 비례하여 자연스럽게 로드 밸런서의
 크기를 조정할 수 있다. spring 5 445 p
+
+로드 밸런싱이란? 네트워크 트래픽을 균등하게 배포하는 방법이다.
 ```
 ```
 3. 유레카 서버 모듈 자바 설정
@@ -99,7 +101,7 @@ ProductCompositeIntegration 참고
 ```
 5. 핵심 마이크로서비스 yml 설정 수정
 
-spring.application.name 설정으로 가상 호스트 이름이 넷플릭스 유레카로 등록되기 때문에 이 값을 수정해야 한다.
+spring.application.name 설정으로 가상 호스트 이름이 넷플릭스 유레카에 등록되기 때문에 이 값을 수정해야 한다.
 핵심 msa yml 참고 
 ```
 ## 개발 프로세스에서 사용할 유레카 구성 설정
