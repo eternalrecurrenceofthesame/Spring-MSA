@@ -115,10 +115,45 @@ gateway yml, docker-compose 참고
 
 또한 도커 환경에서 .jar 파일이 포함된 도커 이미지를 사용할 때는 .jar 파일을 다시 빌드할 필요 없이 인증서를 지정해서
 사용할 수도 있어야 한다. (빌드해서 이미지를 만들지 않고 인증서를 지정해서 사용한다는 의미)
-
-도커 컨테이너의 볼륨과 도커 호스트에 있는 인증서를 매핑해서 사용하면 된다. 394 p 
-(도커를 잘 모르기 때문에 일단 스킵한다.)
 ```
+```
+1. 새 인증서 생성 
+
+cd msa-spring-reactivce
+mkdir keystore // 오타 조심
+
+keytool -genkeypair -alias localhost -keyalg RSA -keysize 2048 -storetype PKC12 - keystore
+keystore/edge-test.p12 -validity 3650
+```
+```
+2. 도커 컴포즈 파일에 새 인증서의 위치 및 암호를 지정하는 변수 추가
+
+gateway:
+  environment:
+    - SPRING_PROFILES_ACTIVE=docker
+    - SERVER_SSL_KEY_STORE=file:/keystore/dege-test.p12
+    - SERVER_SSL_KEY_SOTRE_PASSWORD=testtest
+  volumes:
+    - $PWD/keystore:/keystore
+  build: spring-cloud/gateway
+  mem_limit: 512m
+  ports:
+    - "8443:8443"
+
+새 인증서가 있는 폴더와 매핑된 볼륨을 추가
+(이 부분은 도커에 대해 잘 모르기 때문에 자세한 설명은 생략 추가 예정)     
+```
+```
+3. 에지 서버(게이트 웨이) 가 동작 중이라면 다음 커맨드로 다시 시작
+
+docker-compose up -d --scale gateway=0 // 인스턴스를 0 개로 초기화
+docker-compose up -d --scale gateway=1 // 인스턴스 1 개 추가 345 p 
+
+docker-compose restart gateway 커맨드로 게이트웨이를 재시작 할 경우
+docker-compose.yml 에 적용한 위 변경 사항이 반영되지 않는다 (주의)
+```
+런타임 서명 인증서 교체 부분은 실습은 생략한다. 
+
 ## 검색 서비스 접근 보안 
 ```
 스프링 시큐리티 설정으로 유레카 검색 서버 API 및 웹 페이지에 대한 접근을 제한할 수 있다.
@@ -189,16 +224,86 @@ HTTPS 요청으로 애플리케이션에 접근한다. 복합 마이크로서비
 
 인증 정보를 가지고 있어야 등록될 수 있게 각 마이크로서비스의 yml 구성 설정을 변경했다. 
 
+#### + 게이트웨이 의존성 추가
+```
+스프링 클라우드를 사용하는 게이트웨이 모듈을 spring starter 로 생성하면 필요한 의존성이 없어서 오류가
+발생하는 경우가 있다
+
+No spring.config.import property has been defined 오류 발생시 아래 의존성을 추가한다.
+implementation('org.springframework.cloud:spring-cloud-starter-bootstrap')
+
+https://stackoverflow.com/questions/67507452/no-spring-config-import-property-has-been-defined 참고
+```
 ## 로컬 권한 부여서버를 사용한 테스트 (직접 구현한 권한부여 서버를 의미함) 
 ```
-./gradlew build && docker-compse build 전체 애플리케이션을 새로 빌드하고 이미지 파일을 생성한다. 
+API 접근 보안을 위한 모든 작업이 끝났다. 간단하게 구현 결과물을 설명하고 넘어간다.
 
-* 승인코드 그랜트유형을 사용해서 액세스 토큰 얻기 
+HTTPS 를 사용해서 공개된 API(게이트웨이) 에 대한 외부 요청과 응답을 암호화하여 도청을 방지한다.
+(게이트웨이 안쪽 즉 마이크로서비스 내에서는 http 통신을 사용)
 
-https://localhost:8443/oauth/authorize?response_type=code&client_id=reader&redirect_uri=http://my.redirect.uri&scope
-=product:read&state=35725
+유레카서버에서 시큐리티 의존성을 가지고 인증 논리를 구현했다.
 
--> http://my.redirect.uri/?code=T2pxvW&state=72489 승인코드를 얻을 수 있다.
+마이크로서비스를 유레카 서버에 등록할 때 인증 값을 사용하게 해서 인증되지 않은 서비스가 등록되는 것을
+차단했다.
 
-curl -k https://reader:secret@localhost:8443
+권한부여 서버를 추가해서 사용자 인증 논리를 구현한다. 권한 부여 서버와 외부의 통신(인증, 인가 과정) 은
+에지서버(게이트 웨이) 를 통해서 라우팅 되게끔 설계했다.
+
+리소스를 직접 호출하는 게이트웨이와 (게이트웨이는 복합 서비스와 유레카 서버를 호출할 수 있다.)
+
+복합 서비스는 스프링 시큐리티를 사용해서 OAuth2 인증 방식의 구현 모듈 중 하나인 리소스 서버로 만들고
+리소스를 호출하기 전 권한이 있는지 권한 부여 서버에서 검증하도록 설계했다.
+
+OAuth 2  프레임워크를 스프링 시큐리티로 구현하는 것에 대해서는 아래 링크를 참고한다.
+https://github.com/eternalrecurrenceofthesame/Spring-security-in-action/tree/main/part4/OAuth2-spring-security
+
+./gradlew build && docker-compse build 전체 애플리케이션을 새로 빌드하고 이미지 파일을 생성한다.
 ```
+
+테스트는 포스트맨을 사용한다.
+
+```
+* CLIENT_CREDENTIALS(클라이언트 자격 증명 유형)
+
+https://localhost:8443/oauth2/token : 액세스 토큰 요청 url
+reader : 클라이언트 아이디
+secret-reader : 클라이언트 시크릿
+product:read : 스코프
+
+클라이언트 아이디와 시크릿 스코프 및 클라이언트 자격증명유형을 포함한 postman 요청으로
+액세스 토큰을 얻을 수 있다.
+
+https://localhost:8443/product-composite/1
+액세스 토큰으로 리소스 엔드포인트를 호출 한다.
+
+참고로 권한부여 서버를 구현할 때 읽기와 저장 클라이언트를 각각 따로 만들었다. 
+```
+```
+* AUTHORIZATION_CODE (승인 코드 그랜트 유형) 
+
+https://my.redirect.uri 
+https://localhost:8443/oauth2/authorize : 권한 부여 서버 엔드포인트
+https://localhost:8443/oauth2/token
+reader
+secret-reader
+product:read
+
+username, password
+
+https://localhost:8443/product-composite/1
+
+승인 코드 그랜트 유형에서는 리다이렉트 주소와 권한부여 서버의 엔드포인트 그리고 인가 정보가 추가로 필요하다.
+마찬가지로 포스트맨을 사용하면 리소스를 쉽게 호출 할 수 있다.
+
+
+승인 코드 그랜트 유형에 대한 추가 설명이 필요하면 아래 내용을 참고한다.
+https://github.com/eternalrecurrenceofthesame/Spring-security-in-action/tree/main/part4/ch12
+https://github.com/eternalrecurrenceofthesame/Spring-security-in-action/tree/main/part4/OAuth2-spring-security/OAuth2-authorization
+```
+
+클라이언트 자격 증명 유형 및 승인 코드 그랜트 유형으로 시큐리티가 적용된 API 호출 테스트를 마무리한다.
+
+참고로 스프링 시큐리티에서 패스워드 그랜트 타입은 depreacted 되었고 암시적 그랜트 유형은 지원하지 않는다.
+
+OAuth 0 추가 예정.
+
