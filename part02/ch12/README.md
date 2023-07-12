@@ -98,5 +98,12 @@ spring.cloud.config.enabled=false 속성을 추가해서 비활성화 한다.
 
 ProductCompositeServiceApplicationTests, PersistenceTests 참고
 ```
+#### + test resources 구현하기
+```
+위에서 설명한 스프링 부트 기반의 테스트는 구성 서버를 사용하지 않기 때문에 애플리케이션 모듈에 있는 설정 정보를 사용할 수 없다.
+그렇기 때문에 테스트 내에서 사용할 리소스를 만들고 구성설정을 따로 만들어줘야 한다.
+
+test resources 를 참고한다.
+```
 ## 클라우드 컨피그 서버 사용해보기
 
