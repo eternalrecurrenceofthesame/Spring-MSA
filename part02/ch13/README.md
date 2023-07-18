@@ -2,8 +2,8 @@
 ```
 Resilience4j 를 사용해서 대규모 마이크로서비스 시스템에서 발생하는 느리거나 응답하지 않는 downstream 마이크로서비스로부터
 오는 피해를 최소화 할 수 있으며 시간 초과, 재시도 메커니즘을 사용해서 빈번하게 발생하는 오류를 방지할 수 있다.
-```
-```
+
+
 참고로 에지 서버에서는 Resilience4j 를 사용할 수 없다. 에지서버에 대한 지원을 추가한다는 소식이 있다.
 spring.io/blog/2019/04/16/introducing-spring-cloud-circuit-breaker 참고 
 ```
@@ -13,7 +13,7 @@ spring.io/blog/2019/04/16/introducing-spring-cloud-circuit-breaker 참고
 
 ### 서킷 브레이커 소개
 ```
-서킷 브레이커는 다량의 오류 감지시 서킷을 열어 새 호출을 받지 않는다. 서킷이 열려있는 상태에서 새 
+서킷 브레이커는 *다량*의 오류 감지시 서킷을 열어 새 호출을 받지 않는다. 서킷이 열려있는 상태에서 새 
 요청을 하면 폴백 메서드로 호출을 리디렉션한다.
 
 폴백 메서드로 비즈니스로직을 구현해서 로컬 캐시의 데이터를 반환하거나 오류 메시지를 반환할 수 있다.
@@ -21,8 +21,10 @@ spring.io/blog/2019/04/16/introducing-spring-cloud-circuit-breaker 참고
 일정 시간이 지나면 서킷 브레이커는 반 열림 상태로 전환돼 새로운 호출을 허용한다. 이를 통해 문제를
 일으킨 원인이 사라졌는지 확인하고 새로운 오류를 감지하면 다시 서킷을 열고 실패 로직을 수행한다.
 
-오류가 사라졌다면 서킷을 닫고 정상 작동 상태로 돌아간다. 마이크로서비스는 이런 방법으로 문제에 대한
-탄력성을 가지며 이는 동기 방식으로 통신하는 MSA 환경의 필수 기능이다. 457 p
+오류가 사라지고 반열림 상태에서 요청에 성공하면 서킷을 닫고 정상 작동 상태로 돌아간다.
+(Resilience4J 를 사용하면 정상 작동 상태가 되기 위한 성공 횟수를 설정할 수 있다.)
+
+마이크로서비스는 이런 방법으로 문제에 대한 탄력성을 가지며 이는 동기 방식으로 통신하는 MSA 환경의 필수 기능이다. 457 p
 
 서킷 브레이커의 현재 상태는 마이크로서비스의 액추에이터의 상태 점검 엔드포인트 (actuator/health) 를
 사용해서 모니터링 할 수 있다.
@@ -46,15 +48,17 @@ spring.io/blog/2019/04/16/introducing-spring-cloud-circuit-breaker 참고
 
 Res4j 는 서킷 브레이커와 같은 방식으로 재시도와 관련된 이벤트 및 메트릭 정보를 공개하지만 상태 정보는
 제공하지 않고 이벤트에 관한 정보는 액추에이터 엔드포인트(/actuator/retryevents) 에서 얻을 수 있다.
+
+참고로 재시도란 요청 처리에 실패했을 때 같은 요청을 반복 하는 것을 말한다.
 ```
 ```
-(주의) 재시도 및 서킷 브레이커 설정을 구성할 때 의도한 재시도 횟수가 완료되기 전에 서킷 브레이커가 서킷을
-열게 하면 안 된다.
+(주의) 재시도 및 서킷 브레이커 설정을 구성(yml) 할 때 의도한 재시도 횟수가 완료되기 전에 서킷 브레이커가 서킷을
+열게 설정 하면 안 된다. 460 p
 ```
 ## 서킷 브레이커 및 재시도 API 추가
 ```
-우선 서킷 브레이커 및 재시도 메커니즘을 테스트하기 위해 임의로 오류를 발생시키는 코드를 API 인터페이스에 추가한다.
-파라미터 값으로 지연 시간과 실패 퍼센트를 받아서 임의로 지연 및 실패를 구현한다.
+우선 서킷 브레이커 및 재시도 메커니즘을 테스트하기 위해 임의로 오류를 발생시키는 코드를 API 인터페이스에 추가하고
+서킷브레이커 설정을 메서드에 구현한다.
 
 Product-composite, Product 의 getCompositeProduct, getProduct 메서드 참고
 ```
@@ -95,10 +99,21 @@ https://resilience4j.readme.io/docs/circuitbreaker#create-and-configure-a-circui
 https://ko.wikipedia.org/wiki/%EC%8A%AC%EB%9D%BC%EC%9D%B4%EB%94%A9_%EC%9C%88%EB%8F%84 참고
 ```
 ```
-* @Retry 애노테이션 예외 470p
+* @Retry 애노테이션 예외 처리하기 470p
 
-참고로 yml 구성 설정에서 예외를 지정하지 않으면 @Retry 애노테이션이 붙은 메서드에서 던진 예외는 RetryExceptionWrapper
-예외로 wrapping 된다.
+@Retry 애노테이션이 붙은 메서드는 예외를 던질 때 RetryExceptionWrapper 로 Wrapping 해서 던진다.
+메서드에서 던진 예외를 직접 확인해야 하는 상황이라면 메서드 호출자가 RetryExceptionWrapper 예외를 벗겨내고
+
+실제 예외로 대체하는 로직을 추가해야 한다.
+
+integration.getProduct(productId, delay, faultPercent)
+	.onErrorMap(RetryExceptionWrapper.class, retryException -> retryException.getCause())
+	.onErrorReturn(CircuitBreakerOpenException.calss, getProductFallbackValue(productId)),
+
+getProduct 호출시 발생한 @Retry 메서드에서 래핑해서 던진 오류를 onErrorMap 벗겨내고 실제 처리하고 싶은 예외인
+CircuitBreakerOpenException 를 잡아서 폴백 메서드로 처리하면 된다.
+
+ProductCompositeServiceImpl 를 응용해서 참고한다.
 ```
 ## 서킷 브레이커 및 재시도 메커니즘 테스트하기
 
@@ -134,8 +149,12 @@ https://localhost:8443/product-composite/1
 docker-compose exec -T product-composite curl -s http://product-composite:8080/actuator/health | jq -r
 .components.circuitBreakers.details.product.details.state
 
-조회 후 서킷 브레이커를 확인하는 커맨드 exec -T 를 사용하면 컨테이너 내부에 직접 커맨드 할 수 있다.
-데이터를 여러 번 조회하고 서킷이 닫혀있는지 체크한다. (조회시 조회용 토큰을 새로 발급받아야 한다!)
+조회 후 서킷 브레이커를 확인하는 커맨드.
+
+exec -T 를 사용하면 컨테이너 내부에 직접 커맨드 할 수 있다. 데이터를 여러 번 조회하고 서킷이 닫혀있는지 체크한다.
+(각 마이크로서비스의 액추에이터는 에지 서버를 통해서 접근할 수 없다. 471p)
+
+참고로 조회시 조회용 토큰을 새로 발급받아야 한다!
 ```
 
 ### open, half-open 테스트(실패, 반열림)
@@ -145,14 +164,14 @@ docker-compose exec -T product-composite curl -s http://product-composite:8080/a
 https://locahost:8443/product-composite/1?delay=3 
 
 서비스 API 를 세 번 호출하면서 응답을 3 초간 지연시키면 시간 초과가 발생한다.
-(일부러 시간 초과를 발생시키기 위해 3 번 호출 및 3 초의 딜레이를 가진다.)
+(일부러 시간 초과를 발생시키기 위해 3 번 호출 및 3 초의 딜레이를 준다 서킷 브레이커는 다량의 오류 발생시 오픈된다.)
 
 시간 초과로 인해 서킷은 open 상태가 된다.
 ```
 ```
 2. 빠른 실패 및 폴백 메서드 작동 체크
 
-https://locahost:8443/product-composite/1?delay=3 
+https://localhost:8443/product-composite/1?delay=3 
 
 앞서 서킷을 open 으로 만들었고 반열림 전환 대기 시간 10 초 전에 네 번째 시간 초과 호출을 보내서 빠른 실패 및
 폴백 메서드가 작동하는지 확인한다.
@@ -164,8 +183,8 @@ docker-compose exec -T product-composite curl -s http://product-composite:8080/a
 ```
 ### 서킷 브레이커 다시 닫기
 ```
-서킷 브레이커가 반열림 상태에 있을 때 서킷을 다시 열지, 서킷을 닫아서 정상 상태로 되돌리지 판단하고자
-세 번의 재시도 호출을 기다린다. (재시도 구성 설정)
+서킷 브레이커가 반열림 상태에 있을 때 서킷을 다시 열지, 서킷을 닫아서 정상 상태로 되돌리지 판단하고자 세 번의 재시도 호출을 기다린다.
+반열림 상태에서 최대 받을 수 있는 호출 횟수를 지정해준 것 product-composite.yml 참고 
 
 https://localhost:8443/product-composite/1
 정상 조회 요청을 3 번 보내서 서킷 브레이커를 닫아준다.
@@ -175,5 +194,15 @@ docker-compose exec -T product-composite curl -s http://product-composite:8080/a
 서킷 상태 확인
 ```
 ### 무작위 오류로 재시도 메커니즘 테스트
+```
+클라이언트의 요청이 실패하고 재시도에서 설정한 예외가 발생하면 재시도가 트리거된다. 앞서 만든 faultPercent 변수
+값을 사용해서 일정 확률로 요청이 실패하는 메서드를 호출한다. 
 
+https://localhost:8443/product-composite/1?faultPercent=25 
 
+docker-compose exec -T product-composite curl -s http://product-composite:8080/actuator/retryevents | jq
+'.retryEvents[-2], .retryEvents[-1]'
+마지막 재시도 이벤트 2 개를 확인할 수 있다.
+
+재시도에 계속 실패하게 되면 서킷 브레이커가 작동해 서킷을 열고 빠른 실패 로직과 폴백 메서드가 적용된다. 
+```
