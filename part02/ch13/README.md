@@ -13,8 +13,8 @@ spring.io/blog/2019/04/16/introducing-spring-cloud-circuit-breaker 참고
 
 ### 서킷 브레이커 소개
 ```
-서킷 브레이커는 다량의 오류 감지시 서킷을 열어 새 호출을 받지 않는다. 서킷이 열려있으면 폴백 메서드로
-호출을 리디렉션한다.
+서킷 브레이커는 다량의 오류 감지시 서킷을 열어 새 호출을 받지 않는다. 서킷이 열려있는 상태에서 새 
+요청을 하면 폴백 메서드로 호출을 리디렉션한다.
 
 폴백 메서드로 비즈니스로직을 구현해서 로컬 캐시의 데이터를 반환하거나 오류 메시지를 반환할 수 있다.
 
@@ -101,3 +101,79 @@ https://ko.wikipedia.org/wiki/%EC%8A%AC%EB%9D%BC%EC%9D%B4%EB%94%A9_%EC%9C%88%EB%
 예외로 wrapping 된다.
 ```
 ## 서킷 브레이커 및 재시도 메커니즘 테스트하기
+
+### closed 테스트(정상 요청)
+```
+1. 액세스 토큰 획득 및 테스트 데이터 추가 (포스트맨)
+
+https://my.redirect.uri 
+https://localhost:8443/oauth2/authorize : 권한 부여 서버 엔드포인트
+https://localhost:8443/oauth2/token
+writer
+secret-writer
+product:write
+
+username, password
+
+
+{"productId":1, "name":"product name C", "weight":300, 
+"recommendations":
+[{"recommendationId":1, "author":"author 1","rate":1,"content":"content 1"},
+{"recommendationId":2, "author":"author 2","rate":2,"content":"content 2"},
+{"recommendationId":3, "author":"author 3","rate":3,"content":"content 3"}],
+"reviews":
+[{"reviewId":1, "author":"author 1", "subject":"subject 1","content":"content 1"},
+{"reviewId":2, "author":"author 2", "subject":"subject 2","content":"content 2"},
+{"reviewId":3, "author":"author 3", "subject":"subject 3","content":"content 3"}]}
+```
+```
+2. 저장한 데이터 조회하기
+
+https://localhost:8443/product-composite/1
+
+docker-compose exec -T product-composite curl -s http://product-composite:8080/actuator/health | jq -r
+.components.circuitBreakers.details.product.details.state
+
+조회 후 서킷 브레이커를 확인하는 커맨드 exec -T 를 사용하면 컨테이너 내부에 직접 커맨드 할 수 있다.
+데이터를 여러 번 조회하고 서킷이 닫혀있는지 체크한다. (조회시 조회용 토큰을 새로 발급받아야 한다!)
+```
+
+### open, half-open 테스트(실패, 반열림)
+```
+1. 실패 요청
+
+https://locahost:8443/product-composite/1?delay=3 
+
+서비스 API 를 세 번 호출하면서 응답을 3 초간 지연시키면 시간 초과가 발생한다.
+(일부러 시간 초과를 발생시키기 위해 3 번 호출 및 3 초의 딜레이를 가진다.)
+
+시간 초과로 인해 서킷은 open 상태가 된다.
+```
+```
+2. 빠른 실패 및 폴백 메서드 작동 체크
+
+https://locahost:8443/product-composite/1?delay=3 
+
+앞서 서킷을 open 으로 만들었고 반열림 전환 대기 시간 10 초 전에 네 번째 시간 초과 호출을 보내서 빠른 실패 및
+폴백 메서드가 작동하는지 확인한다.
+
+폴백 메서드 호출 후 10 초간 기다린 후 반열림 상태가 되었는지 확인한다.
+
+docker-compose exec -T product-composite curl -s http://product-composite:8080/actuator/health | jq -r
+.components.circuitBreakers.details.product.details.state
+```
+### 서킷 브레이커 다시 닫기
+```
+서킷 브레이커가 반열림 상태에 있을 때 서킷을 다시 열지, 서킷을 닫아서 정상 상태로 되돌리지 판단하고자
+세 번의 재시도 호출을 기다린다. (재시도 구성 설정)
+
+https://localhost:8443/product-composite/1
+정상 조회 요청을 3 번 보내서 서킷 브레이커를 닫아준다.
+
+docker-compose exec -T product-composite curl -s http://product-composite:8080/actuator/health | jq -r
+.components.circuitBreakers.details.product.details.state
+서킷 상태 확인
+```
+### 무작위 오류로 재시도 메커니즘 테스트
+
+
