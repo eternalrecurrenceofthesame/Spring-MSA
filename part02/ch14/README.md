@@ -12,7 +12,7 @@ zipkin.io/pages/extensions_choices 참고
 ```
 ## 마이크로서비스에 집킨 추가하기
 ```
-1. 의존성 추가
+1. 의존성 추가 (스프링 부트 3.0.6 버전 기준)
 
 implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
@@ -34,4 +34,9 @@ docker-compose 참고
 application.yml 참고 
 ```
 ## 분산 추적 테스트하기
+```
+이전 챕터에서 설명한 것 처럼 데이터를 만들고 조회한다. http://localhost:9411/zipkin/ 집킨 ui 에서 요청을 추적할 수 있다.
+도커 컴포즈에 RabbitMQ 관련 설정을 추가하면 래빗 ui 에서도 집킨으로 전송된 추적 정보를 모니터링 할 수 있다.
 
+docker-compose 참고 
+```
