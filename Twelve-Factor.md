@@ -50,4 +50,32 @@ One benefit of explicit dependency declaration is that it simplifies setup for d
 Twelve-factor apps 은 또한 curl, imagemagick 같이 보편적으로 사용되는 시스템 툴과 충돌하지 않도록 관리해야한다. 이러한 도구 들은
 미래 애플리케이션 환경에서 작동을 보장할 수 없으며 애플리케이션과 강하게 결합될 수 있다. that tool should be vendored into the app.
 ```
+## 3. Config
 
+구성 설정은 코드에서 떼어내서 환경변수에 저장해야 한다. Store config in the environment
+```
+구성 설정은 데이터 베이스 연결 정보, 외부 서비스 (아마존 or 트위터) 의 비밀번호 정보, 배포의 표준 호스트 네임을 가지고 있다.
+애플리케이션에서 이런 설정들을 코드에 저장하는 것은 Twelve-factor apps 규칙을 위반하는 행위이다.
+
+구성 설정은 배포에 따라서 크게 변화하지만 코드는 변화하지 않기 때문에 구성 설정을 코드에서 분리해서 관리한다.
+
+구성 설정은 Twelve-factor apps 에 따라서 환경 변수로 관리되어야 한다. 환경 변수로 구성 설정을 관리하면 코드의 변경 없이 쉽게 설정을
+바꿀 수 있다.
+
+환경 변수를 사용하면 구성 파일을 사용하는 것보다 설정이 노출될 일이 적으며 언어 및 os 에 구애 받지 않는 표준으로 사용할 수 있다.
+구성을 그룹으로 관리하는 방법도 있지만 이 방법은 애플리케이션이 확장될 때마다 특정 구성 그룹과 강하게 결합되어 관리에 취약하다.
+
+결론적으로 환경 변수를 구성 설정으로 사용하면 독립적으로 관리되어 세분화된 컨트롤을 할 수 있으면서 배포된 애플리케이션의 생존 주기와
+상관없이 간편하게 확장할 수 있다. 
+```
+```
+참고로 루비나 스프링을 사용하는 경우 구성이 배포에따라서 달라지지 않기 때문에 코드 내부에서 구성 설정을 만드는 것이 좋다.
+
+Note that this definition of “config” does not include internal application config, such as config/routes.rb in Rails,
+or how code modules are connected in Spring. This type of config does not vary between deploys, and so is best done in the code.
+
+마이크로 서비스로 애플리케이션을 구현해서 모듈이 분산되어 있다면 스프링의 경우 구성 중앙화 서버를 만들어서 일괄적으로 구성 정보를 관리할 수 있다.
+분산된 여러 개의 모듈을 한 곳에서 관리할 수 있기 떄문에 응집성이 높아진다. (루비는 안 써봐서 모름)
+
+구성 중앙화에 대해서는 msa-ch12 를 참고한다. 
+```
