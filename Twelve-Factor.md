@@ -20,7 +20,7 @@ The twelve-factor app 방법론은 어떤 프로그래밍 언어, 데이터베�
 ```
 ## 1. CodeBase
 
-하나의 코드 베이스를 만들어서 개정 버전을 추적한다. (One codebase tracked in revision control, many deploys)
+하나의 코드 베이스를 만들어서 개정 버전을 추적한다. One codebase tracked in revision control, many deploys
 
 ```
 버전 관리 시스템(Git, Mercurial, or Subversion) 으로 코드베이스(인터페이스) 를 저장해서 관리한다. 수정이 발생하더라도
@@ -31,5 +31,23 @@ The twelve-factor app 방법론은 어떤 프로그래밍 언어, 데이터베�
 
 코드베이스는 스테이징 상태에서 배포되기 전까지 모두 같은 버전을 사용하기 떄문에 동일한 애플리케이션의 다른 배포를 식별할 수 있다.
 ```
+## 2. Dependencies
 
+의존 관계를 명확하게 선언하고 분리시켜야 한다. Explicitly declare and isolate dependencies
+
+```
+루비, 파이썬, C 언어는 의존 관계 분리 툴 (dependency isolation tool) 을 제공한다. (안 써봐서 정확하게 모름)
+
+의존 관계를 명확하게 선언하면 애플리케이션을 관리할 새로운 개발자가 쉽게 접근할 수 있게 된다.
+One benefit of explicit dependency declaration is that it simplifies setup for developers new to the app.
+
+마이크로 서비스로 애플리케이션을 구현할 때 (그 외 여러가지 모듈이 합쳐진 애플리케이션을 구현할 때) 모듈 별 공통적으로 사용되는
+의존관계(라이브러리 패키지) 가 충돌되지 않도록 관리해야 한다.
+
+그레이들이나 메이븐으로 의존 관계를 관리할 때 모듈별 공통 의존성의 버전 충돌이 일어나지 않도록 해야한다.
+(중복되는 것들은 애초에 같은 버전을 사용해야 하자.) 
+
+Twelve-factor apps 은 또한 curl, imagemagick 같이 보편적으로 사용되는 시스템 툴과 충돌하지 않도록 관리해야한다. 이러한 도구 들은
+미래 애플리케이션 환경에서의 작동을 보장할 수 없으며 애플리케이션과 강하게 결합될 수 있다. that tool should be vendored into the app.
+```
 
