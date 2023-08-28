@@ -45,9 +45,9 @@ One benefit of explicit dependency declaration is that it simplifies setup for d
 의존관계(라이브러리 패키지) 가 충돌되지 않도록 관리해야 한다.
 
 그레이들이나 메이븐으로 의존 관계를 관리할 때 모듈별 공통 의존성의 버전 충돌이 일어나지 않도록 해야한다.
-(중복되는 것들은 애초에 같은 버전을 사용해야 하자.) 
+(중복되는 것들은 애초에 같은 버전을 사용 한다.) 
 
 Twelve-factor apps 은 또한 curl, imagemagick 같이 보편적으로 사용되는 시스템 툴과 충돌하지 않도록 관리해야한다. 이러한 도구 들은
-미래 애플리케이션 환경에서의 작동을 보장할 수 없으며 애플리케이션과 강하게 결합될 수 있다. that tool should be vendored into the app.
+미래 애플리케이션 환경에서 작동을 보장할 수 없으며 애플리케이션과 강하게 결합될 수 있다. that tool should be vendored into the app.
 ```
 
