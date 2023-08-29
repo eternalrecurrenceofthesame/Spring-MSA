@@ -81,3 +81,23 @@ or how code modules are connected in Spring. This type of config does not vary b
 
 구성 중앙화에 대해서는 msa-ch12 를 참고한다. 
 ```
+## 4. Backing services
+
+백엔드 서비스를 연결된 리소스로 관리한다. Treat backing services as attached resources
+
+```
+Backing services 란 애플리케이션과 연결된 데이터베이스, 메세징 시스템, 메일 전송 프로토콜 (SMTP), 캐싱 시스템같이 애플리케이션 네트워크에서
+소비하는 리소스를 의미한다. 
+
+데이터베이스는 애플리케이션의 같은 운영자에 의해서 관리될 수 있지만(로컬 서비스로 관리하는 MySQL) 메일 전송 프로토콜, 메트릭 서비스, 외부 API 접근,
+binary asset servicse(such as Amazon S3) 같이 서드 파티가 제공하는 백엔드 서비스가 필요할 수 있다.
+
+Twelve-factor apps 원칙은 로컬 서비스와 서드파티 서비스를 구분하지 않고 애플리케이션에 연결된 리소스로 관리한다. (데이터베이스처럼)
+
+백엔드 서비스에 접근하기 위해 url or other locator/credentials 을 구성 설정에 저장해서 사용하면 로컬 데이터베이스(MySQL 같은) 를 써드파티
+서비스인 아마존 RDS 로 교체하더라도 애플리케이션 코드의 변경 없이 수행할 수 있다. (구성 설정을 중앙화 해서 설정 정보만 바꿔주면 된다는 의미)
+
+간단하게 정리하자면 로컬 및 서드파티 구성 설정을 앞서 설명한 환경변수로 관리하면 코드의 변경 없이 구성 설정을 변경할 수 있다는 의미
+스프링으로 마이크로 서비스를 개발한다면 구성 중앙 서버를 만들어서 관리할 수 있다. ch 12 참고 
+```
+
